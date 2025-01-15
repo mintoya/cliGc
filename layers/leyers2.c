@@ -62,10 +62,6 @@ typedef enum {
   Vertical = 0,
 } Direction;
 
-/* typedef struct { */
-/*   List *lines; */
-/* } Leyer; */
-
 typedef struct {
   uint8_t row;
   uint8_t col;
@@ -243,6 +239,7 @@ void box(List *content) {
 
   if (!BENCHMARK && $eq(LastTerminalSize, ts)) {
     printCellDiff(screen);
+    $sleep(1);
   } else {
     printCells(screen);
   }
