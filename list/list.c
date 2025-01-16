@@ -120,3 +120,15 @@ int List_forEach(List *l, int (*function)(void *)) {
   }
   return result;
 }
+
+int List_filter(List *l, int (*function)(void *)) {
+  int totalRemoved = 0;
+  for (int i = 0; i < l->length; i++) {
+    if (!function(List_gst(l, i))) {
+      List_remove(l, i);
+      totalRemoved++;
+      i--;
+    }
+  }
+  return totalRemoved;
+}

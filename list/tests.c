@@ -153,6 +153,32 @@ void test_List_forEach() {
 
   List_delete(list);
 }
+int filterHelper(void *elem) {
+  Person person1 = {"John Doe", 30};
+  return (!compare_person(elem, &person1));
+}
+void test_List_filter() {
+  List *list = List_new(sizeof(Person));
+  Person person1 = {"John Doe", 30};
+  Person person2 = {"Jane Smith", 25};
+  List_append(list, &person1);
+  List_append(list, &person1);
+  List_append(list, &person1);
+  List_append(list, &person1);
+  List_append(list, &person1);
+  List_append(list, &person2);
+
+  // Print each person in the list
+  printf("before filter\n");
+  List_forEach(list, print_person);
+  List_filter(list, filterHelper);
+  printf("after filter\n");
+  List_forEach(list, print_person);
+  assert(list->length == 1);
+  printf("Test List_filter passed!\n");
+
+  List_delete(list);
+}
 
 int main() {
   test_List_new_and_append();
@@ -160,6 +186,7 @@ int main() {
   test_List_remove();
   test_List_resize();
   test_List_forEach();
+  test_List_filter();
 
   printf("All tests passed!\n");
   return 0;
