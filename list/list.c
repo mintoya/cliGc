@@ -90,8 +90,8 @@ void List_remove(List *l, unsigned int i) {
   if (checkBounds(l, i)) {
     memcpy(l->head + i * l->width, l->head + (i + 1) * l->width,
            (l->length - i) * l->width);
+    l->length--;
   }
-  l->length--;
 }
 void List_insert(List *l, unsigned int i, void *element) {
   if (i == l->length) {
@@ -112,4 +112,11 @@ void List_print_as_string(List *l) {
     printf("%c", c);                  // Print the character
   }
   printf("\n");
+}
+int List_forEach(List *l, int (*function)(void *)) {
+  int result = 1;
+  for (int i = 0; i < l->length; i++) {
+    result = result && function(List_gst(l, i));
+  }
+  return result;
 }
