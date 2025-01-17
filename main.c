@@ -1,7 +1,7 @@
 #include "layers/leyers2.c"
 #include "list/list.h"
-#include <math.h>
 #include <pthread.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,12 +9,18 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <wchar.h>
-#ifdef _WIN32
-#include <windows.h>
-#endif
+
+void cursorOff() { WFPRINT(L"\033[?25l"); }
+void cursorOn() { WFPRINT(L"\033[?25h"); }
+
+static pthread_t threadIds[3];
 static int fpsInt = 0;
 static int storedFps = 0;
-/* i dont know what a mutex is  */
+static List *ui = NULL;
+static pthread_mutex_t lock;
+volatile sig_atomic_t terminate = 0;
+void handle_sigint(int sig) { terminate = 1; }
+
 List *square(int fpses) {
   static int isB;
   if (!(rand() % 1000)) {
@@ -35,34 +41,48 @@ List *square(int fpses) {
   List_append(layer, &l2l);
   return layer;
 }
-void boxy() {
-  List *l = square(storedFps);
-  box(l);
-  Layer_delete(l);
-  l = NULL;
-  setCursorPosition(0, 0);
-  fflush(stdout);
-}
-void cursorOff() { WFPRINT(L"\033[?25l"); }
-void cursorOn() { WFPRINT(L"\033[?25h"); }
 
 void *counter(void *vargp) {
   int myid = getpid();
-  cursorOff();
-  while (1) {
+
+  WFPRINT(L"hello from counter");
+  while (!terminate) {
     $sleep(1000);
+    pthread_mutex_lock(&lock);
     storedFps = fpsInt;
     fpsInt = 0;
+    pthread_mutex_unlock(&lock);
   }
+  return NULL;
 }
-/* void *frame(void) { */
 void *frame(void *vargp) {
   int myid = getpid();
   cursorOff();
-  while (1) {
-    boxy();
+  WFPRINT(L"hello from frame");
+  while (!terminate) {
+    pthread_mutex_lock(&lock);
+    drawLayer(ui);
+    fflush(stdout);
     fpsInt++;
+    pthread_mutex_unlock(&lock);
   }
+  return NULL;
+}
+
+void *uiUpdate(void *vargp) {
+  int myid = getpid();
+  WFPRINT(L"hello from ui");
+  while (!terminate) {
+    pthread_mutex_lock(&lock);
+    if (ui != NULL) {
+      Layer_delete(ui);
+      ui = NULL;
+    }
+    ui = square(storedFps);
+
+    pthread_mutex_unlock(&lock);
+  }
+  return NULL;
 }
 int main(void) {
   setlocale(LC_ALL, "");
@@ -70,12 +90,28 @@ int main(void) {
   SetConsoleOutputCP(CP_UTF8);
   setlocale(LC_ALL, ".UTF-8");
 #endif
-
-  $sleep(3000);
+  if (pthread_mutex_init(&lock, NULL)) {
+    printf("\n mutex init has failed\n");
+    return 1;
+  }
+  signal(SIGINT, handle_sigint);
+  /* $sleep(3000); */
   setvbuf(stdout, NULL, _IOFBF, 16384);
-  pthread_t threadid;
-  pthread_create(&threadid, NULL, counter, NULL);
-  pthread_create(&threadid, NULL, frame, NULL);
+  pthread_create(threadIds + 2, NULL, uiUpdate, NULL);
+  pthread_create(threadIds, NULL, counter, NULL);
+  pthread_create(threadIds + 1, NULL, frame, NULL);
+
+  while (!terminate) {
+    usleep(100000); // Avoid busy-waiting
+  }
+
+  // Optionally join threads here if needed
+  pthread_join(threadIds[0], NULL);
+  pthread_join(threadIds[1], NULL);
+  pthread_join(threadIds[2], NULL);
+
+  pthread_mutex_destroy(&lock);
+  WFPRINT(L"\nThreads joined, everything done mayhaps\n");
   pthread_exit(NULL);
   return (0);
 }

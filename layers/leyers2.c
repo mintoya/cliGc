@@ -8,7 +8,7 @@
 #include <string.h>
 #include <wchar.h>
 
-#define BENCHMARK 1 // turns off the diff functino
+#define BENCHMARK 0 // turns off the diff functino
 
 #define $eq(a, b) !memcmp(&a, &b, sizeof(a))
 #define $sleep(a) usleep(a * 1000)
@@ -228,7 +228,7 @@ void printCellDiff(Cell *cellLayer) {
 }
 TerminalSize LastTerminalSize = {0, 0};
 
-void box(List *content) {
+void drawLayer(List *content) {
   TerminalSize ts = get_terminal_size();
   setCursorPosition(0, 0);
 
