@@ -8,7 +8,7 @@
 #include <string.h>
 #include <wchar.h>
 
-#define BENCHMARK 1 // turns off the diff functino
+#define BENCHMARK 0 // turns off the diff functino
 
 #define $eq(a, b) !memcmp(&a, &b, sizeof(a))
 #define $sleep(a) usleep(a * 1000)
@@ -239,7 +239,7 @@ void box(List *content) {
 
   if (!BENCHMARK && $eq(LastTerminalSize, ts)) {
     printCellDiff(screen);
-    $sleep(1);
+    /* $sleep(1); */
   } else {
     printCells(screen);
   }
