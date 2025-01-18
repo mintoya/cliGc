@@ -239,10 +239,11 @@ void box(List *content) {
 
   if (!BENCHMARK && $eq(LastTerminalSize, ts)) {
     printCellDiff(screen);
-    /* $sleep(1); */
+    /* $sleep(100); */
   } else {
     printCells(screen);
   }
+  fflush(stdout);
 
   if (LastLRender != NULL) {
     free(LastLRender);

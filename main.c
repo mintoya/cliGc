@@ -21,17 +21,12 @@ volatile sig_atomic_t terminate = 0;
 void handle_sigint(int sig) { terminate = 1; }
 
 List *square(int fpses) {
-  static int isB;
-  if (!(rand() % 1000)) {
-    isB = !isB;
-    /* isB = 1; */
-  }
   List *layer = List_new(sizeof(Line));
-  wchar_t *l1 = (isB) ? L"hello" : L"Bozo!";
-  wchar_t *l2 = (isB) ? L"world" : L"Bozo!";
+  wchar_t *l1 = L"hello";
+  wchar_t *l2 = L"world";
   wchar_t fps[12] = {0};
   swprintf(fps, 12, L"%d", fpses);
-  int offset = isB;
+  int offset = rand() % 100;
   Line l1l = Line_new(5, 5 + offset, RED, BG_BLUE, Vertical, l1);
   Line l2l = Line_new(5, 6 + offset, RESET, RESET, Horizontal, l2);
   Line fpsline = Line_new(0, 5, RESET, RESET, Horizontal, fps);
@@ -45,8 +40,6 @@ void boxy() {
   box(l);
   Layer_delete(l);
   l = NULL;
-  setCursorPosition(0, 0);
-  fflush(stdout);
 }
 
 void *counter(void *vargp) {
@@ -94,7 +87,7 @@ int main(void) {
 
   // Optionally join threads here if needed
   pthread_join(threadIds[0], NULL);
-  pthread_join(threadIds[2], NULL);
+  pthread_join(threadIds[1], NULL);
 
   pthread_mutex_destroy(&lock);
   WFPRINT(L"\nThreads joined, everything done mayhaps\n");
