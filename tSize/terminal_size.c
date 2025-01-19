@@ -6,7 +6,6 @@
 TerminalSize get_terminal_size() {
   TerminalSize size = {0, 0};
 
-  // Get the console screen buffer information on Windows
   CONSOLE_SCREEN_BUFFER_INFO csbi;
   if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi)) {
     size.width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
