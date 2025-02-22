@@ -253,3 +253,4 @@ void box(List *content) {
   LastTerminalSize = ts;
   LastLRender = screen;
 }
+
