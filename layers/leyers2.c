@@ -228,7 +228,7 @@ void printCellDiff(Cell *cellLayer) {
 }
 TerminalSize LastTerminalSize = {0, 0};
 
-void drawLayer(List *content) {
+void box(List *content) {
   TerminalSize ts = get_terminal_size();
   setCursorPosition(0, 0);
 
@@ -239,10 +239,13 @@ void drawLayer(List *content) {
 
   if (!BENCHMARK && $eq(LastTerminalSize, ts)) {
     printCellDiff(screen);
-    $sleep(1);
+    $sleep(10);
+    /* idk windows or linux is lieing about the duration of the sleep functinos
+     */
   } else {
     printCells(screen);
   }
+  fflush(stdout);
 
   if (LastLRender != NULL) {
     free(LastLRender);
@@ -250,3 +253,4 @@ void drawLayer(List *content) {
   LastTerminalSize = ts;
   LastLRender = screen;
 }
+
