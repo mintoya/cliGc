@@ -7,7 +7,7 @@ make: $(OBJECTS)
 
 # To run the program
 run: make
-	$(if $(findstring Windows,$(OS)),a.exe,./a)
+	./a
 
 # Rules for compiling source files
 main.o: main.c

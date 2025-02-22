@@ -90,8 +90,7 @@ int main(void) {
   pthread_join(threadIds[1], NULL);
 
   pthread_mutex_destroy(&lock);
-  WFPRINT(L"\nThreads joined, everything done mayhaps\n");
+  WFPRINT(L"\nThreads joined\n");
   pthread_exit(NULL);
   return (0);
 }
-
