@@ -239,7 +239,9 @@ void box(List *content) {
 
   if (!BENCHMARK && $eq(LastTerminalSize, ts)) {
     printCellDiff(screen);
-    /* $sleep(100); */
+    $sleep(10);
+    /* idk windows or linux is lieing about the duration of the sleep functinos
+     */
   } else {
     printCells(screen);
   }
