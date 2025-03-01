@@ -1,8 +1,8 @@
-#include "layers/leyers2.h"
-#include "list/list.h"
-#include "locale.h"
-#include "wprint/wprint.h"
+#include "../layers/leyers2.h"
+#include "../list/list.h"
+#include "../wprint/wprint.h"
 #include <assert.h>
+#include <locale.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdint.h>
