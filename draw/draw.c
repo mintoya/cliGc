@@ -15,7 +15,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
-void usleep(__int64 usec) {
+void wsleep(useconds_t usec) {
   HANDLE timer;
   LARGE_INTEGER ft;
 
@@ -27,9 +27,10 @@ void usleep(__int64 usec) {
   WaitForSingleObject(timer, INFINITE);
   CloseHandle(timer);
 }
-#endif
-
+#define $sleep(a) wsleep(a * 1000)
+#else
 #define $sleep(a) usleep(a * 1000)
+#endif
 
 void cursorOff() { WFPRINT(L"\033[?25l"); }
 void cursorOn() { WFPRINT(L"\033[?25h"); }
@@ -74,7 +75,7 @@ int begin(void (*layerFactory)(void)) {
   setlocale(LC_ALL, "");
 #ifdef _WIN32
   SetConsoleOutputCP(CP_UTF8);
-  eetlocale(LC_ALL, ".UTF-8");
+  setlocale(LC_ALL, ".UTF-8");
 #endif
   if (pthread_mutex_init(&lock, NULL)) {
     printf("\n mutex init has failed\n");
