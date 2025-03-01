@@ -2,6 +2,7 @@
 #include "../tSize/terminal_size.h"
 #include "../wprint/wprint.h"
 #include <locale.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

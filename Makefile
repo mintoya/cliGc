@@ -1,17 +1,23 @@
 CFLAGS = -pthread
-OBJECTS = main.c tSize/terminal_size.c list/list.c
-
-# The default target is to build the executable 'a'
+OBJECTS = wprint/wprint.c main.c draw.c tSize/terminal_size.c list/list.c layers/leyers2.c
 make: $(OBJECTS)
 	gcc -o a $(OBJECTS) $(CFLAGS)
-
-# To run the program
+clean:
+	rm a
+	rm a.exe
 run: make
 	./a
 
-# Rules for compiling source files
+
+wprint.o: wprint.c
+	gcc -c wprint.c $(CFLAGS)
 main.o: main.c
 	gcc -c main.c $(CFLAGS)
+draw.o: draw.c
+	gcc -c draw.c $(CFLAGS)
+
+layers2.o: layers/leyers2.c
+	gcc -c layers/leyers2.c $(CFLAGS)
 
 tSize/terminal_size.o: tSize/terminal_size.c
 	gcc -c tSize/terminal_size.c $(CFLAGS)

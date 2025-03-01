@@ -1,8 +1,9 @@
-#include "layers/leyers2.c"
+#include "draw.h"
+#include "layers/leyers2.h"
 #include "list/list.h"
+#include "wprint/wprint.h"
 #include <assert.h>
 #include <pthread.h>
-#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,17 +11,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <wchar.h>
-#define $sleep(a) usleep(a * 1000)
-
-void cursorOff() { WFPRINT(L"\033[?25l"); }
-void cursorOn() { WFPRINT(L"\033[?25h"); }
-
-static pthread_t threadIds[2];
-static int fpsInt = 0;
-static int storedFps = 0;
-static pthread_mutex_t lock;
-volatile sig_atomic_t terminate = 0;
-void handle_sigint(int sig) { terminate = 1; }
 
 List *square(int fpses) {
   List *layer = List_new(sizeof(Line));
@@ -37,66 +27,14 @@ List *square(int fpses) {
   List_append(layer, &l2l);
   return layer;
 }
+
 void export() {
-  List *l = square(fpsInt);
+  List *l = square(0);
   draw(l);
   Layer_delete(l);
   l = NULL;
 }
-void draw(List *l) {
-  // list of "Line"
-  assert(l->width == sizeof(Line));
-  box(l);
-}
-
-void *counter(void *vargp) {
-  int myid = getpid();
-  while (!terminate) {
-    $sleep(1000);
-    pthread_mutex_lock(&lock);
-    storedFps = fpsInt;
-    fpsInt = 0;
-    pthread_mutex_unlock(&lock);
-  }
-  return NULL;
-}
-void *frame(void *vargp) {
-  int myid = getpid();
-  while (!terminate) {
-    pthread_mutex_lock(&lock);
-    export();
-    $sleep(1);
-    fpsInt++;
-    pthread_mutex_unlock(&lock);
-  }
-  return NULL;
-}
 int main(void) {
-  setlocale(LC_ALL, "");
-#ifdef _WIN32
-  SetConsoleOutputCP(CP_UTF8);
-  setlocale(LC_ALL, ".UTF-8");
-#endif
-  if (pthread_mutex_init(&lock, NULL)) {
-    printf("\n mutex init has failed\n");
-    return 1;
-  }
-  signal(SIGINT, handle_sigint);
-  setvbuf(stdout, NULL, _IOFBF, 16384);
-  cursorOff();
-  pthread_create(threadIds, NULL, frame, NULL);
-  pthread_create(threadIds + 1, NULL, counter, NULL);
-  $sleep(10000);
-
-  while (!terminate) {
-    $sleep(1000);
-  }
-
-  pthread_join(threadIds[0], NULL);
-  pthread_join(threadIds[1], NULL);
-
-  pthread_mutex_destroy(&lock);
-  WFPRINT(L"\nThreads joined\n");
-  pthread_exit(NULL);
+  begin(export);
   return (0);
 }
