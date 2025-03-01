@@ -11,7 +11,6 @@
 #define BENCHMARK 0 // turns off the diff functino
 
 #define $eq(a, b) !memcmp(&a, &b, sizeof(a))
-#define $sleep(a) usleep(a * 1000)
 
 void setCursorPosition(int row, int col) {
   static wchar_t buffer[20] = {0};
@@ -239,7 +238,6 @@ void box(List *content) {
 
   if (!BENCHMARK && $eq(LastTerminalSize, ts)) {
     printCellDiff(screen);
-    $sleep(10);
     /* idk windows or linux is lieing about the duration of the sleep functinos
      */
   } else {

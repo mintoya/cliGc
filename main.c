@@ -1,5 +1,6 @@
 #include "layers/leyers2.c"
 #include "list/list.h"
+#include <assert.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdint.h>
@@ -9,6 +10,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <wchar.h>
+#define $sleep(a) usleep(a * 1000)
 
 void cursorOff() { WFPRINT(L"\033[?25l"); }
 void cursorOn() { WFPRINT(L"\033[?25h"); }
@@ -35,11 +37,16 @@ List *square(int fpses) {
   List_append(layer, &l2l);
   return layer;
 }
-void boxy() {
-  List *l = square(storedFps);
-  box(l);
+void export() {
+  List *l = square(fpsInt);
+  draw(l);
   Layer_delete(l);
   l = NULL;
+}
+void draw(List *l) {
+  // list of "Line"
+  assert(l->width == sizeof(Line));
+  box(l);
 }
 
 void *counter(void *vargp) {
@@ -53,13 +60,12 @@ void *counter(void *vargp) {
   }
   return NULL;
 }
-/* void *frame(void) { */
 void *frame(void *vargp) {
   int myid = getpid();
-  cursorOff();
   while (!terminate) {
     pthread_mutex_lock(&lock);
-    boxy();
+    export();
+    $sleep(1);
     fpsInt++;
     pthread_mutex_unlock(&lock);
   }
@@ -76,16 +82,16 @@ int main(void) {
     return 1;
   }
   signal(SIGINT, handle_sigint);
-  /* $sleep(3000); */
   setvbuf(stdout, NULL, _IOFBF, 16384);
+  cursorOff();
   pthread_create(threadIds, NULL, frame, NULL);
   pthread_create(threadIds + 1, NULL, counter, NULL);
+  $sleep(10000);
 
   while (!terminate) {
     $sleep(1000);
   }
 
-  // Optionally join threads here if needed
   pthread_join(threadIds[0], NULL);
   pthread_join(threadIds[1], NULL);
 
