@@ -1,29 +1,11 @@
 #include "draw/draw.h"
+#include "input/input.h"
 #include "layers/leyers2.h"
 #include "list/list.h"
 #include <unistd.h>
 #include <wchar.h>
 #define $columns 10
 #define $rows 10
-#ifdef _WIN32
-#include <windows.h>
-void wsleep(useconds_t usec) {
-  HANDLE timer;
-  LARGE_INTEGER ft;
-
-  ft.QuadPart = -(10 * usec); // Convert to 100 nanosecond interval, negative
-                              // value indicates relative time
-
-  timer = CreateWaitableTimer(NULL, TRUE, NULL);
-  SetWaitableTimer(timer, &ft, 0, NULL, NULL, 0);
-  WaitForSingleObject(timer, INFINITE);
-  CloseHandle(timer);
-}
-#define $sleep(a) wsleep(a * 1000)
-#else
-#define $sleep(a) usleep(a * 1000)
-#endif
-
 typedef struct snakePart {
   int row, column;
   struct snakePart *nextPart;
@@ -36,13 +18,31 @@ typedef enum direction {
   left = 4,
 } direction;
 
-static snakePart next = {1, 1, NULL};
+static snakePart nextnext = {1, 1, NULL};
+static snakePart next = {1, 1, &nextnext};
 static snakePart Head = {1, 1, &next};
 static direction HeadDirection = 3;
 List *tick() {
 
   int rowMove = 0;
   int colMove = 0;
+  if (_kbhit()) {
+    int ch = getch();
+    switch (ch) {
+    case 'w':
+      HeadDirection = up;
+      break;
+    case 'a':
+      HeadDirection = left;
+      break;
+    case 's':
+      HeadDirection = down;
+      break;
+    case 'd':
+      HeadDirection = right;
+      break;
+    }
+  }
   switch (HeadDirection) {
   case right:
     colMove++;
@@ -95,8 +95,9 @@ List *tick() {
 }
 
 void export() {
+  $sleep(25);
   List *l = tick();
-  $sleep(1000);
+  $sleep(25);
   draw(l);
   Layer_delete(l);
   l = NULL;

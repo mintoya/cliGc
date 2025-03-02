@@ -1,5 +1,5 @@
 CFLAGS = -pthread
-OBJECTS = wprint/wprint.c main.c draw/draw.c tSize/terminal_size.c list/list.c layers/leyers2.c
+OBJECTS = wprint/wprint.c main.c draw/draw.c tSize/terminal_size.c list/list.c layers/leyers2.c input/input.c
 make: $(OBJECTS)
 	gcc -o a $(OBJECTS) $(CFLAGS)
 clean:
@@ -9,6 +9,8 @@ run: make
 	./a
 
 
+wprint.o: input/input.c
+	gcc -c input/input.c $(CFLAGS)
 wprint.o: wprint.c
 	gcc -c wprint.c $(CFLAGS)
 main.o: main.c

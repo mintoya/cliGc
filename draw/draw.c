@@ -1,3 +1,4 @@
+#include "draw.h"
 #include "../layers/leyers2.h"
 #include "../list/list.h"
 #include "../wprint/wprint.h"
@@ -12,9 +13,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <wchar.h>
+
+
+
 #ifdef _WIN32
 #include <windows.h>
-void wsleep(useconds_t usec) {
+void asleep(unsigned long long usec) {
   HANDLE timer;
   LARGE_INTEGER ft;
 
@@ -26,10 +30,16 @@ void wsleep(useconds_t usec) {
   WaitForSingleObject(timer, INFINITE);
   CloseHandle(timer);
 }
-#define $sleep(a) wsleep(a * 1000)
+void $sleep(unsigned long long a){
+ asleep(a * 1000);
+}
 #else
-#define $sleep(a) usleep(a * 1000)
+void $sleep(unsigned long long a){
+ usleep(a * 1000);
+}
 #endif
+
+
 
 void cursorOff() { WFPRINT(L"\033[?25l"); }
 void cursorOn() { WFPRINT(L"\033[?25h"); }
