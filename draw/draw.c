@@ -12,7 +12,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <wchar.h>
-
 #ifdef _WIN32
 #include <windows.h>
 void wsleep(useconds_t usec) {
@@ -35,9 +34,7 @@ void wsleep(useconds_t usec) {
 void cursorOff() { WFPRINT(L"\033[?25l"); }
 void cursorOn() { WFPRINT(L"\033[?25h"); }
 
-static pthread_t threadIds[2];
-static int fpsInt = 0;
-static int storedFps = 0;
+static pthread_t threadIds;
 static pthread_mutex_t lock;
 volatile sig_atomic_t terminate = 0;
 void handle_sigint(int sig) { terminate = 1; }
@@ -48,25 +45,12 @@ void draw(List *l) {
   box(l);
 }
 
-void *counter(void *vargp) {
-  int myid = getpid();
-  while (!terminate) {
-    $sleep(1000);
-    pthread_mutex_lock(&lock);
-    storedFps = fpsInt;
-    fpsInt = 0;
-    pthread_mutex_unlock(&lock);
-  }
-  return NULL;
-}
 static void (*exp)(void);
 void *frame(void *vargp) {
   int myid = getpid();
   while (!terminate) {
-    $sleep(1);
     pthread_mutex_lock(&lock);
     exp();
-    fpsInt++;
     pthread_mutex_unlock(&lock);
   }
   return NULL;
@@ -85,16 +69,13 @@ int begin(void (*layerFactory)(void)) {
   setvbuf(stdout, NULL, _IOFBF, 16384);
   cursorOff();
   exp = layerFactory;
-  pthread_create(threadIds, NULL, frame, NULL);
-  pthread_create(threadIds + 1, NULL, counter, NULL);
-  $sleep(1000);
+  pthread_create(&threadIds, NULL, frame, NULL);
 
   while (!terminate) {
     $sleep(1000);
   }
 
-  pthread_join(threadIds[0], NULL);
-  pthread_join(threadIds[1], NULL);
+  pthread_join(threadIds, NULL);
 
   pthread_mutex_destroy(&lock);
   WFPRINT(L"\nThreads joined\n");
