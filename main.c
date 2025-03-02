@@ -2,6 +2,7 @@
 #include "input/input.h"
 #include "layers/leyers2.h"
 #include "list/list.h"
+#include <stdlib.h>
 #include <unistd.h>
 #include <wchar.h>
 #define $columns 10
@@ -17,13 +18,15 @@ typedef enum direction {
   right = 3,
   left = 4,
 } direction;
+struct ball {
+  int col;
+  int row;
+};
 
-static snakePart nextnext = {1, 1, NULL};
-static snakePart next = {1, 1, &nextnext};
-static snakePart Head = {1, 1, &next};
+static snakePart Head = {1, 1, NULL};
+static struct ball apple = {0, 0};
 static direction HeadDirection = 3;
 List *tick() {
-
   int rowMove = 0;
   int colMove = 0;
   if (_kbhit()) {
@@ -63,6 +66,18 @@ List *tick() {
   Head.row += rowMove;
   Head.column += colMove;
 
+  if (Head.row == apple.row && Head.column == apple.col) {
+    snakePart *new = calloc(1, sizeof(snakePart));
+    snakePart *csnake = &Head;
+    while (csnake->nextPart) {
+      csnake = csnake->nextPart;
+    }
+    *new = *csnake;
+    csnake->nextPart = new;
+    apple.row = rand() % $rows;
+    apple.col = rand() % $columns;
+  }
+
   snakePart *csnake = Head.nextPart;
   while (csnake) {
     int tcol, trow;
@@ -91,13 +106,14 @@ List *tick() {
     List_append(rows, &tline);
     csnake = csnake->nextPart;
   }
+  Line tline = Line_new(apple.row, apple.col, RED, RESET, Horizontal, L"O");
+  List_append(rows, &tline);
   return rows;
 }
 
 void export() {
-  $sleep(25);
+  $sleep(100);
   List *l = tick();
-  $sleep(25);
   draw(l);
   Layer_delete(l);
   l = NULL;
