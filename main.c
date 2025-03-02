@@ -26,7 +26,7 @@ void wsleep(useconds_t usec) {
 
 typedef struct snakePart {
   int row, column;
-  struct snakePart *nextPart, *prevPart;
+  struct snakePart *nextPart;
 } snakePart;
 
 typedef enum direction {
@@ -36,25 +36,11 @@ typedef enum direction {
   left = 4,
 } direction;
 
-static snakePart Head = {0, 0, NULL, NULL};
+static snakePart next = {1, 1, NULL};
+static snakePart Head = {1, 1, &next};
 static direction HeadDirection = 3;
 List *tick() {
-  List *rows = List_new(sizeof(Line));
-  wchar_t template[$columns + 1] = {0};
-  for (int i = 0; i < $columns; i++) {
-    template[i] = L' ';
-  }
-  for (int i = 0; i < $rows; i++) {
-    Line tline = Line_new(i, 0, RESET, BG_BLUE, Horizontal, template);
-    List_append(rows, &tline);
-  }
-  snakePart *csnake = &Head;
-  while (csnake) {
-    Line tline = Line_new(csnake->row, csnake->column, RESET, BG_RED,
-                          Horizontal, L"");
-    List_append(rows, &tline);
-    csnake = csnake->nextPart;
-  }
+
   int rowMove = 0;
   int colMove = 0;
   switch (HeadDirection) {
@@ -77,7 +63,7 @@ List *tick() {
   Head.row += rowMove;
   Head.column += colMove;
 
-  csnake = Head.nextPart;
+  snakePart *csnake = Head.nextPart;
   while (csnake) {
     int tcol, trow;
     tcol = csnake->column;
@@ -89,6 +75,22 @@ List *tick() {
     csnake = csnake->nextPart;
   }
 
+  List *rows = List_new(sizeof(Line));
+  wchar_t template[$columns + 1] = {0};
+  for (int i = 0; i < $columns; i++) {
+    template[i] = L' ';
+  }
+  for (int i = 0; i < $rows; i++) {
+    Line tline = Line_new(i, 0, RESET, BG_BLUE, Horizontal, template);
+    List_append(rows, &tline);
+  }
+  csnake = &Head;
+  while (csnake) {
+    Line tline =
+        Line_new(csnake->row, csnake->column, RED, RESET, Horizontal, L"");
+    List_append(rows, &tline);
+    csnake = csnake->nextPart;
+  }
   return rows;
 }
 
