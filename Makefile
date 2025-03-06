@@ -9,20 +9,17 @@ run: make
 	./a
 
 
-wprint.o: input/input.c
-	gcc -c input/input.c $(CFLAGS)
-wprint.o: wprint.c
-	gcc -c wprint.c $(CFLAGS)
 main.o: main.c
 	gcc -c main.c $(CFLAGS)
 draw.o: draw.c
 	gcc -c draw.c $(CFLAGS)
-
 layers2.o: layers/leyers2.c
 	gcc -c layers/leyers2.c $(CFLAGS)
-
 tSize/terminal_size.o: tSize/terminal_size.c
 	gcc -c tSize/terminal_size.c $(CFLAGS)
-
 list/list.o: list/list.c
 	gcc -c list/list.c $(CFLAGS)
+input.o: input/input.c
+	gcc -c input/input.c $(CFLAGS)
+wprint.o: wprint.c
+	gcc -c wprint.c $(CFLAGS)

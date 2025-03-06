@@ -1,6 +1,7 @@
 #include "../list/list.h"
 #include "../tSize/terminal_size.h"
 #include "../wprint/wprint.h"
+#include <assert.h>
 #include <locale.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -63,8 +64,8 @@ typedef enum {
 } Direction;
 
 typedef struct {
-  uint8_t row;
-  uint8_t col;
+  int row;
+  int col;
   Color fgColor;
   Color bgColor;
   Direction ori;
@@ -101,6 +102,40 @@ Line Line_new(int row, int col, Color fg, Color bg, Direction orientation,
   a.fgColor = fg;
   a.contents = setAlloc(content);
   return a;
+}
+typedef struct {
+  List *lines;
+  int row, col, brow, bcol;
+} Box;
+static List *tempBox_new = NULL;
+Box Box_new(int row, int col, int brow, int bcol, Color fg, Color bg,
+            wchar_t fill) {
+  // "fake" static variable
+  if (!tempBox_new) {
+    tempBox_new = List_new(sizeof(wchar_t));
+  }
+
+  tempBox_new->length = 0;
+  for (int i = col; i < bcol; i++) {
+    List_append(tempBox_new, &fill);
+  }
+  List_append(tempBox_new, L"\0");
+
+  List *lines = List_new(sizeof(Line));
+  for (int i = row; i < brow; i++) {
+    Line l = Line_new(i, col, fg, bg, Horizontal, tempBox_new->head);
+    List_append(lines, &l);
+  }
+  Box a;
+  a.row = row;
+  a.col = col;
+  a.bcol = bcol;
+  a.brow = brow;
+  a.lines = lines;
+  return a;
+}
+void Box_set(Box box, int row, int col, wchar_t val) {
+  ((Line *)List_gst(box.lines, row))->contents[col] = val;
 }
 void Layer_delete(List *l) {
   for (int i = 0; i < l->length; i++) {

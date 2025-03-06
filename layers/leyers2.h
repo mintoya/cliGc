@@ -78,6 +78,12 @@ void rasterset(Cell *c, TerminalSize ts, int row, int col, Cell element);
 Cell *Leyer_rasterize(List *l, TerminalSize ts);
 void cellArrMerge(Cell *completeLeyer, Cell *incompleteLeyer) ;
 
+typedef struct {
+  List *lines;
+  int row, col, brow, bcol;
+} Box;
+void Box_set(Box box, int row, int col, wchar_t val);
+Box Box_new(int , int, int , int , Color, Color,wchar_t);
 Cell *bottomLayer(TerminalSize ts) ;
 void printCells(Cell *cellLayer) ;
 

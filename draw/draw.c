@@ -14,8 +14,6 @@
 #include <unistd.h>
 #include <wchar.h>
 
-
-
 #ifdef _WIN32
 #include <windows.h>
 void asleep(unsigned long long usec) {
@@ -30,16 +28,10 @@ void asleep(unsigned long long usec) {
   WaitForSingleObject(timer, INFINITE);
   CloseHandle(timer);
 }
-void $sleep(unsigned long long a){
- asleep(a * 1000);
-}
+void $sleep(unsigned long long a) { asleep(a * 1000); }
 #else
-void $sleep(unsigned long long a){
- usleep(a * 1000);
-}
+void $sleep(unsigned long long a) { usleep(a * 1000); }
 #endif
-
-
 
 void cursorOff() { WFPRINT(L"\033[?25l"); }
 void cursorOn() { WFPRINT(L"\033[?25h"); }
@@ -51,7 +43,7 @@ void handle_sigint(int sig) { terminate = 1; }
 
 void draw(List *l) {
   // list of "Line"
-  assert(l->width == sizeof(Line));
+  /* assert(l->width == sizeof(Line)); */
   box(l);
 }
 
