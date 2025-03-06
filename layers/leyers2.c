@@ -135,6 +135,10 @@ Box Box_new(int row, int col, int brow, int bcol, Color fg, Color bg,
   return a;
 }
 void Box_set(Box box, int row, int col, wchar_t val) {
+  if (row + 1 > (box.brow - box.row) || row < 0 ||
+      col + 1 > (box.bcol - box.col) || col < 0) {
+    return;
+  }
   ((Line *)List_gst(box.lines, row))->contents[col] = val;
 }
 void Layer_delete(List *l) {

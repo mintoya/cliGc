@@ -56,8 +56,8 @@ typedef enum {
 } Direction;
 
 typedef struct {
-  uint8_t row;
-  uint8_t col;
+  int row;
+  int col;
   Color fgColor;
   Color bgColor;
   Direction ori;
@@ -88,6 +88,6 @@ Cell *bottomLayer(TerminalSize ts) ;
 void printCells(Cell *cellLayer) ;
 
 void printCellDiff(Cell *cellLayer) ;
-
+wchar_t* setAlloc(wchar_t*);
 void box(List *content) ;
 #endif // !LEYERS2_H
