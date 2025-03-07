@@ -30,9 +30,9 @@ List *tick() {
   if (b == NULL) {
     Box *box = calloc(1, sizeof(Box));
     *box = Box_new(2, 1, 10, 10, RESET, BG_BLUE, L' ');
-    Line templine = {0, 0, RED, BG_BLUE, Horizontal, setAlloc(L"hello")};
-    /* List_append(b->lines, &templine); */
     b = box;
+    List_prettyPrint(box->lines);
+    $sleep(3000);
   }
   Box_set(*b, a, a, L'S');
   Box_set(*b, a, 0, L'S');

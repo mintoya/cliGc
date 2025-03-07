@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <wchar.h>
 /*#define FAIL exit(1)*/
 // not using stdlib for now
 #define FAIL printf("FAIL was supposed to be called here");
@@ -30,11 +30,11 @@ void List_prettyPrint(const List *list) {
     printf("List is NULL.\n");
     return;
   }
-  printf("List Details:\n");
-  printf("  Width:  %lu\n", list->width);
-  printf("  Length: %u\n", list->length);
-  printf("  Size:   %u\n", list->size);
-  printf("  Head:   %p\n", list->head);
+  wprintf(L"List Details:\n");
+  wprintf(L"  Width:  %lu\n", list->width);
+  wprintf(L"  Length: %u\n", list->length);
+  wprintf(L"  Size:   %u\n", list->size);
+  wprintf(L"  Head:   %p\n", list->head);
   fflush(stdout);
 }
 void List_delete(List *l) {
