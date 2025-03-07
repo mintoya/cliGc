@@ -25,6 +25,18 @@ List *List_new(unsigned long bytes) {
   l->size = 1;
   return l;
 }
+void List_prettyPrint(const List *list) {
+  if (list == NULL) {
+    printf("List is NULL.\n");
+    return;
+  }
+  printf("List Details:\n");
+  printf("  Width:  %lu\n", list->width);
+  printf("  Length: %u\n", list->length);
+  printf("  Size:   %u\n", list->size);
+  printf("  Head:   %p\n", list->head);
+  fflush(stdout);
+}
 void List_delete(List *l) {
   free(l->head);
   l->head = NULL;

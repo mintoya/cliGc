@@ -7,7 +7,11 @@ clean:
 	rm a.exe
 run: make
 	./a
-
+test: make
+	gcc -o a $(OBJECTS) $(CFLAGS) -g
+	gdb ./a
+a: $(OBJECTS)
+	gcc -o a $(OBJECTS) $(CFLAGS)
 
 main.o: main.c
 	gcc -c main.c $(CFLAGS)

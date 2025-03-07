@@ -9,6 +9,7 @@ typedef struct {
 } List;
 
 List* List_new(unsigned long bytes);
+void List_prettyPrint(const List *list);
 void List_set(List* l, unsigned int i,const void* element);
 void* List_gst(List* l, unsigned int i);
 void List_resize(List *l, unsigned int newSize);

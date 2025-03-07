@@ -88,6 +88,5 @@ Cell *bottomLayer(TerminalSize ts) ;
 void printCells(Cell *cellLayer) ;
 
 void printCellDiff(Cell *cellLayer) ;
-wchar_t* setAlloc(wchar_t*);
 void box(List *content) ;
 #endif // !LEYERS2_H
