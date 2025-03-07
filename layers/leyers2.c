@@ -24,40 +24,58 @@ wchar_t *setAlloc(const wchar_t *input) {
   wcsncpy(new_string, input, wcslen(input));
   return new_string;
 }
+typedef struct rgbColor {
+  uint8_t fg[3];
+  uint8_t bg[3];
+} rgbColor;
+uint8_t nibbleConvert(char nibble[2]) {
+  uint8_t result;
+  if (nibble[0] >= 'A' && nibble[0] <= 'F') {
+    result = nibble[0] - 'A' + 10;
+  } else {
+    result = nibble[0] - '0';
+  }
+  result <<= 4;
+  if (nibble[1] >= 'A' && nibble[1] <= 'F') {
+    result += nibble[1] - 'A' + 10;
+  } else {
+    result += nibble[1] - '0';
+  }
+  return result;
+}
+wchar_t *colorize(rgbColor g) {
+  static wchar_t finalcolor[50] = {0};
+  swprintf(finalcolor, 20, L"\x1b[38;2;%d;%d;%dm", g.fg[0], g.fg[1], g.fg[2]);
 
-typedef enum {
-  RESET = 0,
-  RED = 31,
-  GREEN = 32,
-  YELLOW = 33,
-  BLUE = 34,
-  MAGENTA = 35,
-  CYAN = 36,
-  WHITE = 37,
-  BRIGHT_RED = 91,
-  BRIGHT_GREEN = 92,
-  BRIGHT_YELLOW = 93,
-  BRIGHT_BLUE = 94,
-  BRIGHT_MAGENTA = 95,
-  BRIGHT_CYAN = 96,
-  BRIGHT_WHITE = 97,
-  BG_BLACK = 40,
-  BG_RED = 41,
-  BG_GREEN = 42,
-  BG_YELLOW = 43,
-  BG_BLUE = 44,
-  BG_MAGENTA = 45,
-  BG_CYAN = 46,
-  BG_WHITE = 47,
-  BG_BRIGHT_BLACK = 100,
-  BG_BRIGHT_RED = 101,
-  BG_BRIGHT_GREEN = 102,
-  BG_BRIGHT_YELLOW = 103,
-  BG_BRIGHT_BLUE = 104,
-  BG_BRIGHT_MAGENTA = 105,
-  BG_BRIGHT_CYAN = 106,
-  BG_BRIGHT_WHITE = 107
-} Color;
+  // as a stopgap, #000000 is trasparent
+  if (g.bg[0] == 0 && g.bg[1] == 0 && g.bg[2] == 0) {
+    swprintf(finalcolor + wcslen(finalcolor), 20, L"\033[0m");
+  } else {
+    swprintf(finalcolor + wcslen(finalcolor), 20, L"\x1b[48;2;%d;%d;%dm",
+             g.bg[0], g.bg[1], g.bg[2]);
+  }
+  return finalcolor;
+}
+rgbColor hexC(char fgColor[7], char bgColor[7]) {
+  rgbColor resutl;
+  assert(*fgColor == '#');
+  fgColor += 1;
+  resutl.fg[0] = nibbleConvert(fgColor);
+  fgColor += 2;
+  resutl.fg[1] = nibbleConvert(fgColor);
+  fgColor += 2;
+  resutl.fg[2] = nibbleConvert(fgColor);
+
+  assert(*bgColor == '#');
+  bgColor += 1;
+  resutl.bg[0] = nibbleConvert(bgColor);
+  bgColor += 2;
+  resutl.bg[1] = nibbleConvert(bgColor);
+  bgColor += 2;
+  resutl.bg[2] = nibbleConvert(bgColor);
+  return resutl;
+}
+
 typedef enum {
   Horizontal = 1,
   Vertical = 0,
@@ -66,40 +84,32 @@ typedef enum {
 typedef struct {
   int row;
   int col;
-  Color fgColor;
-  Color bgColor;
+  rgbColor color;
   Direction ori;
   wchar_t *contents; // cant contain escape sequences
 } Line;
 typedef struct {
   wchar_t g;
-  Color fg;
-  Color bg;
+  rgbColor color;
 } Cell;
 
 static const Cell noCell = {0, 0, 0};
 static const Cell newLine = {L'\n', 0, 0};
-static const Cell space = {L' ', 0, 0};
-static const Cell hor = {L'─', 0, 0};
-static const Cell ver = {L'│', 0, 0};
-static const Cell tl = {L'┌', 0, 0};
-static const Cell bl = {L'└', 0, 0};
-static const Cell tr = {L'┐', 0, 0};
-static const Cell br = {L'┘', 0, 0};
+static const Cell space = {L' ', {{255, 255, 255}, {0, 0, 0}}};
+static const Cell hor = {L'─', {{255, 255, 255}, {0, 0, 0}}};
+static const Cell ver = {L'│', {{255, 255, 255}, {0, 0, 0}}};
+static const Cell tl = {L'┌', {{255, 255, 255}, {0, 0, 0}}};
+static const Cell bl = {L'└', {{255, 255, 255}, {0, 0, 0}}};
+static const Cell tr = {L'┐', {{255, 255, 255}, {0, 0, 0}}};
+static const Cell br = {L'┘', {{255, 255, 255}, {0, 0, 0}}};
 
-const wchar_t *getColors(Color foreground, Color background) {
-  static wchar_t colorCode[20] = {0};
-  swprintf(colorCode, 20, L"\033[%d;%dm", foreground, background);
-  return colorCode;
-}
-Line Line_new(int row, int col, Color fg, Color bg, Direction orientation,
+Line Line_new(int row, int col, rgbColor color, Direction orientation,
               wchar_t *content) {
   Line a;
   a.row = row;
   a.ori = orientation;
   a.col = col;
-  a.bgColor = bg;
-  a.fgColor = fg;
+  a.color = color;
   a.contents = setAlloc(content);
   return a;
 }
@@ -108,7 +118,7 @@ typedef struct {
   int row, col, brow, bcol;
 } Box;
 static List *tempBox_new = NULL;
-Box Box_new(int row, int col, int brow, int bcol, Color fg, Color bg,
+Box Box_new(int row, int col, int brow, int bcol, rgbColor color,
             wchar_t fill) {
   // "fake" static variable
   if (!tempBox_new) {
@@ -123,7 +133,7 @@ Box Box_new(int row, int col, int brow, int bcol, Color fg, Color bg,
 
   List *lines = List_new(sizeof(Line));
   for (int i = row; i < brow; i++) {
-    Line l = Line_new(i, col, fg, bg, Horizontal, tempBox_new->head);
+    Line l = Line_new(i, col, color, Horizontal, tempBox_new->head);
     List_append(lines, &l);
   }
   Box a;
@@ -156,6 +166,8 @@ void stringAppend(List *l, const wchar_t *nTString) {
 void rasterset(Cell *c, TerminalSize ts, int row, int col, Cell element) {
   if (row >= ts.height || col >= ts.width)
     return;
+  if (row < 0 || col < 0)
+    return;
   *(c + row * (ts.width + 1) + col) = element;
   return;
 }
@@ -165,8 +177,7 @@ Cell *Leyer_rasterize(List *l, TerminalSize ts) {
     Line *line = List_gst(l, i);
     for (int j = 0; line->contents[j]; j++) {
       Cell thisCell;
-      thisCell.bg = line->bgColor;
-      thisCell.fg = line->fgColor;
+      thisCell.color = line->color;
       thisCell.g = line->contents[j];
       rasterset(grid, ts, line->row + (!line->ori) * j,
                 line->col + line->ori * j, thisCell);
@@ -221,15 +232,15 @@ void printCells(Cell *cellLayer) {
     printCellsBuffer->length = 0;
   }
 
-  wchar_t prevColor[20] = L"";
+  wchar_t prevColor[50] = L"";
 
   for (int i = 0; cellLayer[i].g; i++) {
     Cell lcell = cellLayer[i];
-    wchar_t *colorStr = getColors(lcell.fg, lcell.bg);
+    wchar_t *colorStr = colorize(lcell.color);
     if (wcscmp(colorStr, prevColor) != 0) {
       stringAppend(printCellsBuffer, colorStr);
-      wcsncpy(prevColor, colorStr, 19);
-      prevColor[19] = 0;
+      wcsncpy(prevColor, colorStr, wcslen(prevColor));
+      prevColor[49] = 0;
     }
 
     List_append(printCellsBuffer, &(lcell.g));
@@ -250,7 +261,7 @@ void printCellDiff(Cell *cellLayer) {
 
     if (!$eq(LastLRender[i], current)) {
       setCursorPosition(row, col);
-      WFPRINT(getColors(current.fg, current.bg));
+      WFPRINT(colorize(current.color));
       wchar_t literal[2] = {current.g, 0};
       WFPRINT(literal);
     }
@@ -263,7 +274,7 @@ void printCellDiff(Cell *cellLayer) {
     }
     i++;
   }
-  WFPRINT(getColors(RESET, RESET));
+  WFPRINT(L"\033[0m");
 }
 TerminalSize LastTerminalSize = {0, 0};
 
@@ -278,8 +289,6 @@ void box(List *content) {
 
   if (!BENCHMARK && $eq(LastTerminalSize, ts)) {
     printCellDiff(screen);
-    /* idk windows or linux is lieing about the duration of the sleep functinos
-     */
   } else {
     printCells(screen);
   }
