@@ -44,10 +44,12 @@ void Layer_delete(List *l) ;
 typedef struct {
   List *lines;
   int row, col, brow, bcol;
+  rgbColor defcolor;
+  wchar_t defchar;
 } Box;
 rgbColor hexC(char fgColor[7], char bgColor[7]);
 void Box_set(Box box, int row, int col, rgbColor color, wchar_t val);
-void pretty_print_box(const Box *box);
+void pretty_print_box(const Box box);
 void Box_reset(Box box, int row, int col) ;
 Box Box_new(int row, int col, int brow, int bcol, rgbColor color,wchar_t fill);
 void box(List *content) ;

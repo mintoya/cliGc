@@ -1,3 +1,4 @@
+#include "leyers2.h"
 #include "../list/list.h"
 #include "../tSize/terminal_size.h"
 #include "../wprint/wprint.h"
@@ -25,10 +26,6 @@ wchar_t *setAlloc(const wchar_t *input) {
   wcsncpy(new_string, input, wcslen(input));
   return new_string;
 }
-typedef struct rgbColor {
-  uint8_t fg[3];
-  uint8_t bg[3];
-} rgbColor;
 uint8_t nibbleConvert(char nibble[2]) {
   uint8_t result;
   if (nibble[0] >= 'A' && nibble[0] <= 'F') {
@@ -77,23 +74,6 @@ rgbColor hexC(char fgColor[7], char bgColor[7]) {
   return resutl;
 }
 
-typedef enum {
-  Horizontal = 1,
-  Vertical = 0,
-} Direction;
-
-typedef struct {
-  int row;
-  int col;
-  rgbColor color;
-  Direction ori;
-  wchar_t *contents; // cant contain escape sequences
-} Line;
-typedef struct {
-  wchar_t g;
-  rgbColor color;
-} Cell;
-
 static const Cell noCell = {0, 0};
 static const Cell newLine = {L'\n', 0};
 static const Cell space = {L' ', {{255, 255, 255}, {0, 0, 0}}};
@@ -114,33 +94,16 @@ Line Line_new(int row, int col, rgbColor color, Direction orientation,
   a.contents = setAlloc(content);
   return a;
 }
-typedef struct {
-  List *lines;
-  rgbColor defcolor;
-  wchar_t defchar;
-  int row, col, brow, bcol;
-} Box;
 
-void pretty_print_box(const Box *box) {
-  setlocale(LC_ALL, "");
-
-  // Extract color components
-  uint8_t fg_r = box->defcolor.fg[0];
-  uint8_t fg_g = box->defcolor.fg[1];
-  uint8_t fg_b = box->defcolor.fg[2];
-  uint8_t bg_r = box->defcolor.bg[0];
-  uint8_t bg_g = box->defcolor.bg[1];
-  uint8_t bg_b = box->defcolor.bg[2];
-
-  wprintf(L"\n╔══════════════ Box ══════════════╗\n");
-  wprintf(L"║ Foreground: \033[38;2;%d;%d;%dm██\033[0m (%3d,%3d,%3d) ║\n", fg_r,
-          fg_g, fg_b, fg_r, fg_g, fg_b);
-  wprintf(L"║ Background: \033[48;2;%d;%d;%dm  \033[0m (%3d,%3d,%3d) ║\n", bg_r,
-          bg_g, bg_b, bg_r, bg_g, bg_b);
-  wprintf(L"║ Default char:   %lc               ║\n", box->defchar);
-  wprintf(L"║ Position:       %4d,%-4d         ║\n", box->row, box->col);
-  wprintf(L"║ Dimensions:     %4dx%-4d         ║\n", box->brow, box->bcol);
-  wprintf(L"╚═══════════════════════════════════╝\n");
+void pretty_print_box(const Box box) {
+  wprintf(colorize(box.defcolor));
+  wprintf(L" ## \n");
+  wprintf(L"\033[0m");
+  wprintf(L"box\n");
+  wprintf(L" lines: %p\n"
+          L" (%d,%d)\n"
+          L" (%d,%d)\n",
+          box.lines, box.row, box.col, box.brow, box.bcol);
   fflush(stdout);
 }
 
@@ -155,6 +118,8 @@ Box Box_new(int row, int col, int brow, int bcol, rgbColor color,
       List_append(a.lines, &temp);
     }
   }
+  a.defcolor = color;
+  a.defchar = fill;
   a.row = row;
   a.col = col;
   a.bcol = bcol;
@@ -166,12 +131,13 @@ void Box_set(Box box, int row, int col, rgbColor color, wchar_t val) {
       col < 0) {
     return;
   }
-  int toedit = row * (box.bcol - box.col);
-  wprintf(L"Box_set with:%d %d\n", row, col);
-  wprintf(L"setting: (%d * (%d -%d) +%d) = %d of %d\n", row, box.bcol, box.col,
-          col, toedit, box.lines->length);
-  fflush(stdout);
-  usleep(5000000);
+  int toedit = row * (box.bcol - box.col) + col;
+  /* wprintf(L"Box_set with:%d %d\n", row, col); */
+  /* wprintf(L"setting: (%d * (%d -%d) +%d) = %d of %d\n", row, box.bcol,
+   * box.col, */
+  /*         col, toedit, box.lines->length); */
+  /* fflush(stdout); */
+  /* usleep(2000000); */
   ((Line *)List_gst(box.lines, toedit))->color = color;
   ((Line *)List_gst(box.lines, toedit))->contents[0] = val;
 }
