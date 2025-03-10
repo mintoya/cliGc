@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <wchar.h>
 
 #define BENCHMARK 0 // turns off the diff functino
@@ -93,8 +94,8 @@ typedef struct {
   rgbColor color;
 } Cell;
 
-static const Cell noCell = {0, 0, 0};
-static const Cell newLine = {L'\n', 0, 0};
+static const Cell noCell = {0, 0};
+static const Cell newLine = {L'\n', 0};
 static const Cell space = {L' ', {{255, 255, 255}, {0, 0, 0}}};
 static const Cell hor = {L'─', {{255, 255, 255}, {0, 0, 0}}};
 static const Cell ver = {L'│', {{255, 255, 255}, {0, 0, 0}}};
@@ -115,41 +116,74 @@ Line Line_new(int row, int col, rgbColor color, Direction orientation,
 }
 typedef struct {
   List *lines;
+  rgbColor defcolor;
+  wchar_t defchar;
   int row, col, brow, bcol;
 } Box;
-static List *tempBox_new = NULL;
+
+void pretty_print_box(const Box *box) {
+  setlocale(LC_ALL, "");
+
+  // Extract color components
+  uint8_t fg_r = box->defcolor.fg[0];
+  uint8_t fg_g = box->defcolor.fg[1];
+  uint8_t fg_b = box->defcolor.fg[2];
+  uint8_t bg_r = box->defcolor.bg[0];
+  uint8_t bg_g = box->defcolor.bg[1];
+  uint8_t bg_b = box->defcolor.bg[2];
+
+  wprintf(L"\n╔══════════════ Box ══════════════╗\n");
+  wprintf(L"║ Foreground: \033[38;2;%d;%d;%dm██\033[0m (%3d,%3d,%3d) ║\n", fg_r,
+          fg_g, fg_b, fg_r, fg_g, fg_b);
+  wprintf(L"║ Background: \033[48;2;%d;%d;%dm  \033[0m (%3d,%3d,%3d) ║\n", bg_r,
+          bg_g, bg_b, bg_r, bg_g, bg_b);
+  wprintf(L"║ Default char:   %lc               ║\n", box->defchar);
+  wprintf(L"║ Position:       %4d,%-4d         ║\n", box->row, box->col);
+  wprintf(L"║ Dimensions:     %4dx%-4d         ║\n", box->brow, box->bcol);
+  wprintf(L"╚═══════════════════════════════════╝\n");
+  fflush(stdout);
+}
+
 Box Box_new(int row, int col, int brow, int bcol, rgbColor color,
             wchar_t fill) {
-  // "fake" static variable
-  if (!tempBox_new) {
-    tempBox_new = List_new(sizeof(wchar_t));
-  }
-
-  tempBox_new->length = 0;
-  for (int i = col; i < bcol; i++) {
-    List_append(tempBox_new, &fill);
-  }
-  List_append(tempBox_new, L"\0");
-
-  List *lines = List_new(sizeof(Line));
-  for (int i = row; i < brow; i++) {
-    Line l = Line_new(i, col, color, Horizontal, tempBox_new->head);
-    List_append(lines, &l);
-  }
   Box a;
+  a.lines = List_new(sizeof(Line));
+  for (int i = row; i < brow; i++) {
+    for (int o = col; o < bcol; o++) {
+      wchar_t stat[2] = {fill, 0};
+      Line temp = Line_new(i, o, color, Horizontal, stat);
+      List_append(a.lines, &temp);
+    }
+  }
   a.row = row;
   a.col = col;
   a.bcol = bcol;
   a.brow = brow;
-  a.lines = lines;
   return a;
 }
-void Box_set(Box box, int row, int col, wchar_t val) {
-  if (row + 1 > (box.brow - box.row) || row < 0 ||
-      col + 1 > (box.bcol - box.col) || col < 0) {
+void Box_set(Box box, int row, int col, rgbColor color, wchar_t val) {
+  if (row >= (box.brow - box.row) || row < 0 || col >= (box.bcol - box.col) ||
+      col < 0) {
     return;
   }
-  ((Line *)List_gst(box.lines, row))->contents[col] = val;
+  int toedit = row * (box.bcol - box.col);
+  wprintf(L"Box_set with:%d %d\n", row, col);
+  wprintf(L"setting: (%d * (%d -%d) +%d) = %d of %d\n", row, box.bcol, box.col,
+          col, toedit, box.lines->length);
+  fflush(stdout);
+  usleep(5000000);
+  ((Line *)List_gst(box.lines, toedit))->color = color;
+  ((Line *)List_gst(box.lines, toedit))->contents[0] = val;
+}
+void Box_reset(Box box, int row, int col) {
+  if (row >= (box.brow - box.row) || row < 0 || col >= (box.bcol - box.col) ||
+      col < 0) {
+    return;
+  }
+  ((Line *)List_gst(box.lines, row * (box.bcol - box.col) + col))->color =
+      box.defcolor;
+  ((Line *)List_gst(box.lines, row * (box.bcol - box.col) + col))->contents[0] =
+      box.defchar;
 }
 void Layer_delete(List *l) {
   for (int i = 0; i < l->length; i++) {

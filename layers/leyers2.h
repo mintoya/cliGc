@@ -46,7 +46,9 @@ typedef struct {
   int row, col, brow, bcol;
 } Box;
 rgbColor hexC(char fgColor[7], char bgColor[7]);
-void Box_set(Box box, int row, int col, wchar_t val);
+void Box_set(Box box, int row, int col, rgbColor color, wchar_t val);
+void pretty_print_box(const Box *box);
+void Box_reset(Box box, int row, int col) ;
 Box Box_new(int row, int col, int brow, int bcol, rgbColor color,wchar_t fill);
 void box(List *content) ;
 #endif // !LEYERS2_H
