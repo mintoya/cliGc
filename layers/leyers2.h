@@ -11,7 +11,6 @@
 #include <string.h>
 #include <wchar.h>
 
-#define BENCHMARK 0 // turns off the diff functino
 
 #define $eq(a, b) !memcmp(&a, &b, sizeof(a))
 
@@ -33,6 +32,7 @@ typedef struct {
   Direction ori;
   wchar_t *contents; // cant contain escape sequences
 } Line;
+
 typedef struct {
   wchar_t g;
   rgbColor color;
