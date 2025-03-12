@@ -42,6 +42,7 @@ void List_delete(List *l) {
   l->head = NULL;
   free(l);
 }
+#ifdef DEBUGRANGE
 void errPrint(char *message) {
   // just prints stuff in red and exits out
   printf(KRED "%s" RESET, message);
@@ -51,6 +52,11 @@ void warnPrint(char *message) {
   // prints things in orange
   printf(KYEL "%s" RESET, message);
 }
+#else
+
+void errPrint(char *message) {}
+void warnPrint(char *message) {}
+#endif /* ifdef DEBUGRANGE */
 void List_resize(List *l, unsigned int newSize) {
   /*char buffer[60] = {0};*/
   /*sprintf(buffer,"List_resize(%u)\n",newSize);*/
@@ -76,9 +82,9 @@ int checkBounds(List *l, unsigned int i) {
   if (i >= l->length) {
     if (i > l->size) {
       errPrint("Out of bounds\n");
+      inBounds = 0;
     } else {
       warnPrint("Out of range\n");
-      inBounds = 0;
     }
   }
   return inBounds;
