@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <wchar.h>
 
-#define BENCHMARK 0 // turns off the diff functino
+#define BENCHMARK 1 // turns off the diff functino
 
 #define $eq(a, b) !memcmp(&a, &b, sizeof(a))
 
@@ -74,16 +74,17 @@ rgbColor hexC(char fgColor[7], char bgColor[7]) {
   return resutl;
 }
 
-static const Cell noCell = {0, 0};
-static const Cell newLine = {L'\n', 0};
-static const Cell space = {L' ', {{255, 255, 255}, {0, 0, 0}}};
-static const Cell hor = {L'─', {{255, 255, 255}, {0, 0, 0}}};
-static const Cell ver = {L'│', {{255, 255, 255}, {0, 0, 0}}};
-static const Cell tl = {L'┌', {{255, 255, 255}, {0, 0, 0}}};
-static const Cell bl = {L'└', {{255, 255, 255}, {0, 0, 0}}};
-static const Cell tr = {L'┐', {{255, 255, 255}, {0, 0, 0}}};
-static const Cell br = {L'┘', {{255, 255, 255}, {0, 0, 0}}};
-
+// clang-format off
+static const Cell noCell  = {0,     {{0, 0, 0},       {0, 0, 0}}};
+static const Cell newLine = {L'\n', {{0, 0, 0},       {0, 0, 0}}};
+static const Cell space   = {L' ',  {{255, 255, 255}, {0, 0, 0}}};
+static const Cell hor     = {L'─',  {{255, 255, 255}, {0, 0, 0}}};
+static const Cell ver     = {L'│',  {{255, 255, 255}, {0, 0, 0}}};
+static const Cell tl      = {L'┌',  {{255, 255, 255}, {0, 0, 0}}};
+static const Cell bl      = {L'└',  {{255, 255, 255}, {0, 0, 0}}};
+static const Cell tr      = {L'┐',  {{255, 255, 255}, {0, 0, 0}}};
+static const Cell br      = {L'┘',  {{255, 255, 255}, {0, 0, 0}}};
+// clang-format om
 Line Line_new(int row, int col, rgbColor color, Direction orientation,
               wchar_t *content) {
   Line a;
@@ -177,6 +178,7 @@ Cell *Leyer_rasterize(List *l, TerminalSize ts) {
     gridHolder = List_new(sizeof(Cell));
   }
   List_resize(gridHolder, (ts.height + 1) * (ts.width + 1));
+  List_zeroOut(gridHolder);
   Cell *grid = gridHolder->head;
   for (int i = 0; i < l->length; i++) {
     Line *line = List_gst(l, i);
@@ -293,12 +295,17 @@ void printCellDiff(Cell *cellLayer) {
 TerminalSize LastTerminalSize = {0, 0};
 
 void box(List *content) {
+  // content is a list of lists who contain layers
   TerminalSize ts = get_terminal_size();
   setCursorPosition(0, 0);
 
   Cell *screen = bottomLayer(ts);
-  Cell *lr = Leyer_rasterize(content, ts);
-  cellArrMerge(screen, lr);
+
+  for (int i = 0; i < content->length; i++) {
+    List *thisContent = List_gst(content, i);
+    Cell *lr = Leyer_rasterize(thisContent, ts);
+    cellArrMerge(screen, lr);
+  }
 
   if (!BENCHMARK && $eq(LastTerminalSize, ts)) {
     printCellDiff(screen);

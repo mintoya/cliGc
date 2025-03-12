@@ -91,6 +91,12 @@ void *List_gst(List *l, unsigned int i) {
   checkBounds(l, i);
   return l->head + i * l->width;
 }
+void List_zeroOut(List *l) {
+  // "calloc"
+  for (int i = 0; i < l->size; i++) {
+    memset(List_gst(l, i), 0, l->width);
+  }
+}
 void List_append(List *l, void *element) {
   if (l->length + 1 >= l->size) {
     List_resize(l, l->length * 2);
