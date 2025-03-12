@@ -172,7 +172,12 @@ void rasterset(Cell *c, TerminalSize ts, int row, int col, Cell element) {
   return;
 }
 Cell *Leyer_rasterize(List *l, TerminalSize ts) {
-  Cell *grid = (Cell *)calloc((ts.height + 1) * (ts.width + 1), sizeof(Cell));
+  static List *gridHolder = NULL;
+  if (!gridHolder) {
+    gridHolder = List_new(sizeof(Cell));
+  }
+  List_resize(gridHolder, (ts.height + 1) * (ts.width + 1));
+  Cell *grid = gridHolder->head;
   for (int i = 0; i < l->length; i++) {
     Line *line = List_gst(l, i);
     for (int j = 0; line->contents[j]; j++) {
@@ -194,7 +199,12 @@ void cellArrMerge(Cell *completeLeyer, Cell *incompleteLeyer) {
 }
 
 Cell *bottomLayer(TerminalSize ts) {
-  Cell *grid = (Cell *)calloc((ts.height + 1) * (ts.width + 1), sizeof(Cell));
+  static List *baseLayer = NULL;
+  if (!baseLayer) {
+    baseLayer = List_new(sizeof(Cell));
+  }
+  List_resize(baseLayer, (ts.height + 1) * (ts.width + 1));
+  Cell *grid = baseLayer->head;
   for (int i = 0; i < (ts.height) * (ts.width + 1); i++) {
     grid[i] = space;
   }
@@ -232,7 +242,7 @@ void printCells(Cell *cellLayer) {
     printCellsBuffer->length = 0;
   }
 
-  wchar_t prevColor[50] = L"";
+  wchar_t prevColor[41] = L"";
 
   for (int i = 0; cellLayer[i].g; i++) {
     Cell lcell = cellLayer[i];
@@ -240,7 +250,7 @@ void printCells(Cell *cellLayer) {
     if (wcscmp(colorStr, prevColor) != 0) {
       stringAppend(printCellsBuffer, colorStr);
       wcsncpy(prevColor, colorStr, wcslen(prevColor));
-      prevColor[49] = 0;
+      prevColor[40] = 0;
     }
 
     List_append(printCellsBuffer, &(lcell.g));
@@ -250,7 +260,7 @@ void printCells(Cell *cellLayer) {
   List_append(printCellsBuffer, &zero);
   WFPRINT(printCellsBuffer->head);
 }
-
+List *LastLRenderScreen = NULL;
 Cell *LastLRender = NULL;
 void printCellDiff(Cell *cellLayer) {
   int i = 0;
@@ -262,6 +272,10 @@ void printCellDiff(Cell *cellLayer) {
     if (!$eq(LastLRender[i], current)) {
       setCursorPosition(row, col);
       WFPRINT(colorize(current.color));
+      // for debugging
+      /* rgbColor test = current.color; */
+      /* test.bg[2] = rand() % 254; */
+      /* WFPRINT(colorize(test)); */
       wchar_t literal[2] = {current.g, 0};
       WFPRINT(literal);
     }
@@ -285,7 +299,6 @@ void box(List *content) {
   Cell *screen = bottomLayer(ts);
   Cell *lr = Leyer_rasterize(content, ts);
   cellArrMerge(screen, lr);
-  free(lr);
 
   if (!BENCHMARK && $eq(LastTerminalSize, ts)) {
     printCellDiff(screen);
@@ -294,9 +307,13 @@ void box(List *content) {
   }
   fflush(stdout);
 
-  if (LastLRender != NULL) {
-    free(LastLRender);
+  if (!LastLRender) {
+    LastLRenderScreen = List_new(sizeof(Cell));
+    for (int i = 0; screen[i].g; i++) {
+      List_append(LastLRenderScreen, screen + i);
+    }
+    LastLRender = LastLRenderScreen->head;
   }
+
   LastTerminalSize = ts;
-  LastLRender = screen;
 }
