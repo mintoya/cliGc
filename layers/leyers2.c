@@ -239,14 +239,17 @@ void printCellDiff(Cell *cellLayer) {
 
     if (!$eq(LastLRender[i], current)) {
       setCursorPosition(row, col);
-      WFPRINT(colorAscii(current.color));
+      wchar_t total[45] = {0};
+      swprintf(total,41,colorAscii(current.color));
       // for debugging
       /* rgbColor test = current.color; */
       /* test.bg[2] = rand() % 254; */
       /* WFPRINT(colorAscii(test)); */
 
       wchar_t literal[2] = {current.g, 0};
-      WFPRINT(literal);
+      swprintf(total + wcslen(total), 2, literal);
+
+      WFPRINT(total);
     }
 
     if (current.g == L'\n') {
@@ -321,7 +324,6 @@ void box(List *content) {
   fflush(stdout);
 
   if (!LastLRender) {
-
     LastLRenderScreen = List_new(sizeof(Cell));
     int i = 0;
     while (screen[i].g) {
