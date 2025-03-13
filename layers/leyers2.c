@@ -210,7 +210,7 @@ void printCells(Cell *cellLayer) {
     printCellsBuffer->length = 0;
   }
 
-  wchar_t prevColor[41] = L"";
+  wchar_t prevColor[45] = L"";
 
   for (int i = 0; cellLayer[i].g; i++) {
     Cell lcell = cellLayer[i];
@@ -218,9 +218,8 @@ void printCells(Cell *cellLayer) {
     if (wcscmp(colorStr, prevColor) != 0) {
       stringAppend(printCellsBuffer, colorStr);
       wcsncpy(prevColor, colorStr, wcslen(prevColor));
-      prevColor[40] = 0;
+      prevColor[41] = 0;
     }
-
     List_append(printCellsBuffer, &(lcell.g));
   }
 
@@ -330,10 +329,6 @@ void box(List *content) {
       i++;
     }
     List_copyInto(LastLRenderScreen,screen,i+1);
-    /* for (int i = 0; screen[i].g; i++) { */
-    /*   List_append(LastLRenderScreen, screen + i); */
-    /* } */
-
     LastLRender = LastLRenderScreen->head;
   }else{
 
