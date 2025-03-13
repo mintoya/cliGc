@@ -3,6 +3,7 @@
 #include "layers/leyers2.h"
 #include "list/list.h"
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -57,7 +58,7 @@ List *tick() {
 void export() {
   List *l = tick();
   draw(l);
-  l = NULL;
+  fflush(stdout);
   a++;
 }
 int main(void) {

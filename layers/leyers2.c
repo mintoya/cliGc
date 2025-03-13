@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <wchar.h>
 
-#define BENCHMARK 1 // turns off the diff functino
+#define BENCHMARK 0 // turns off the diff functino
 
 #define $eq(a, b) !memcmp(&a, &b, sizeof(a))
 
@@ -22,6 +22,7 @@ void setCursorPosition(int row, int col) {
   WFPRINT(buffer);
 }
 wchar_t *setAlloc(const wchar_t *input) {
+  // stack-allocated strign copy
   wchar_t *new_string = (wchar_t *)calloc(wcslen(input) + 1, sizeof(wchar_t));
   wcsncpy(new_string, input, wcslen(input));
   return new_string;
@@ -41,11 +42,11 @@ uint8_t nibbleConvert(char nibble[2]) {
   }
   return result;
 }
-wchar_t *colorize(rgbColor g) {
+wchar_t *colorAscii(rgbColor g) {
+  // dont use twice in one line
   static wchar_t finalcolor[50] = {0};
   swprintf(finalcolor, 20, L"\x1b[38;2;%d;%d;%dm", g.fg[0], g.fg[1], g.fg[2]);
-
-  // as a stopgap, #000000 is trasparent
+  // #000000 is trasparent
   if (g.bg[0] == 0 && g.bg[1] == 0 && g.bg[2] == 0) {
     swprintf(finalcolor + wcslen(finalcolor), 20, L"\033[0m");
   } else {
@@ -74,6 +75,10 @@ rgbColor hexC(char fgColor[7], char bgColor[7]) {
   return resutl;
 }
 
+typedef struct {
+  wchar_t g;
+  rgbColor color;
+} Cell;
 // clang-format off
 static const Cell noCell  = {0,     {{0, 0, 0},       {0, 0, 0}}};
 static const Cell newLine = {L'\n', {{0, 0, 0},       {0, 0, 0}}};
@@ -97,7 +102,7 @@ Line Line_new(int row, int col, rgbColor color, Direction orientation,
 }
 
 void pretty_print_box(const Box box) {
-  wprintf(colorize(box.defcolor));
+  wprintf(colorAscii(box.defcolor));
   wprintf(L" ## \n");
   wprintf(L"\033[0m");
   wprintf(L"box\n");
@@ -133,12 +138,6 @@ void Box_set(Box box, int row, int col, rgbColor color, wchar_t val) {
     return;
   }
   int toedit = row * (box.bcol - box.col) + col;
-  /* wprintf(L"Box_set with:%d %d\n", row, col); */
-  /* wprintf(L"setting: (%d * (%d -%d) +%d) = %d of %d\n", row, box.bcol,
-   * box.col, */
-  /*         col, toedit, box.lines->length); */
-  /* fflush(stdout); */
-  /* usleep(2000000); */
   ((Line *)List_gst(box.lines, toedit))->color = color;
   ((Line *)List_gst(box.lines, toedit))->contents[0] = val;
 }
@@ -160,9 +159,11 @@ void Layer_delete(List *l) {
   List_delete(l);
 }
 void stringAppend(List *l, const wchar_t *nTString) {
-  for (int i = 0; nTString[i]; i++) {
-    List_append(l, (void *)(nTString + i));
-  }
+  int i = wcslen(nTString);
+  wchar_t* place =l->head + l->length*sizeof(wchar_t);
+  List_resize(l,l->length+i);
+  l->length+=i;
+  memcpy(place,nTString,i*sizeof(wchar_t));
 }
 void rasterset(Cell *c, TerminalSize ts, int row, int col, Cell element) {
   if (row >= ts.height || col >= ts.width)
@@ -200,10 +201,73 @@ void cellArrMerge(Cell *completeLeyer, Cell *incompleteLeyer) {
   }
 }
 
+void printCells(Cell *cellLayer) {
+  static List *printCellsBuffer = NULL;
+  setCursorPosition(0, 0);
+  if (printCellsBuffer == NULL) {
+    printCellsBuffer = List_new(sizeof(wchar_t));
+  } else {
+    printCellsBuffer->length = 0;
+  }
+
+  wchar_t prevColor[41] = L"";
+
+  for (int i = 0; cellLayer[i].g; i++) {
+    Cell lcell = cellLayer[i];
+    wchar_t *colorStr = colorAscii(lcell.color);
+    if (wcscmp(colorStr, prevColor) != 0) {
+      stringAppend(printCellsBuffer, colorStr);
+      wcsncpy(prevColor, colorStr, wcslen(prevColor));
+      prevColor[40] = 0;
+    }
+
+    List_append(printCellsBuffer, &(lcell.g));
+  }
+
+  wchar_t zero = 0;
+  List_append(printCellsBuffer, &zero);
+  WFPRINT(printCellsBuffer->head);
+}
+List *LastLRenderScreen = NULL;
+Cell *LastLRender = NULL;
+void printCellDiff(Cell *cellLayer) {
+  int i = 0;
+  int row = 1;
+  int col = 1;
+  while (cellLayer[i].g) {
+    Cell current = cellLayer[i];
+
+    if (!$eq(LastLRender[i], current)) {
+      setCursorPosition(row, col);
+      WFPRINT(colorAscii(current.color));
+      // for debugging
+      /* rgbColor test = current.color; */
+      /* test.bg[2] = rand() % 254; */
+      /* WFPRINT(colorAscii(test)); */
+
+      wchar_t literal[2] = {current.g, 0};
+      WFPRINT(literal);
+    }
+
+    if (current.g == L'\n') {
+      row++;
+      col = 1;
+    } else {
+      col++;
+    }
+    LastLRender[i] = current;
+    i++;
+  }
+  WFPRINT(L"\033[0m");
+}
+
+TerminalSize LastTerminalSize = {0, 0};
 Cell *bottomLayer(TerminalSize ts) {
   static List *baseLayer = NULL;
   if (!baseLayer) {
     baseLayer = List_new(sizeof(Cell));
+  }else if($eq(ts,LastTerminalSize)){
+    return baseLayer->head;
   }
   List_resize(baseLayer, (ts.height + 1) * (ts.width + 1));
   Cell *grid = baseLayer->head;
@@ -235,74 +299,16 @@ Cell *bottomLayer(TerminalSize ts) {
 
   return grid;
 }
-static List *printCellsBuffer = NULL;
-void printCells(Cell *cellLayer) {
-  setCursorPosition(0, 0);
-  if (printCellsBuffer == NULL) {
-    printCellsBuffer = List_new(sizeof(wchar_t));
-  } else {
-    printCellsBuffer->length = 0;
-  }
-
-  wchar_t prevColor[41] = L"";
-
-  for (int i = 0; cellLayer[i].g; i++) {
-    Cell lcell = cellLayer[i];
-    wchar_t *colorStr = colorize(lcell.color);
-    if (wcscmp(colorStr, prevColor) != 0) {
-      stringAppend(printCellsBuffer, colorStr);
-      wcsncpy(prevColor, colorStr, wcslen(prevColor));
-      prevColor[40] = 0;
-    }
-
-    List_append(printCellsBuffer, &(lcell.g));
-  }
-
-  wchar_t zero = 0;
-  List_append(printCellsBuffer, &zero);
-  WFPRINT(printCellsBuffer->head);
-}
-List *LastLRenderScreen = NULL;
-Cell *LastLRender = NULL;
-void printCellDiff(Cell *cellLayer) {
-  int i = 0;
-  int row = 1;
-  int col = 1;
-  while (cellLayer[i].g) {
-    Cell current = cellLayer[i];
-
-    if (!$eq(LastLRender[i], current)) {
-      setCursorPosition(row, col);
-      WFPRINT(colorize(current.color));
-      // for debugging
-      /* rgbColor test = current.color; */
-      /* test.bg[2] = rand() % 254; */
-      /* WFPRINT(colorize(test)); */
-      wchar_t literal[2] = {current.g, 0};
-      WFPRINT(literal);
-    }
-
-    if (current.g == L'\n') {
-      row++;
-      col = 1;
-    } else {
-      col++;
-    }
-    i++;
-  }
-  WFPRINT(L"\033[0m");
-}
-TerminalSize LastTerminalSize = {0, 0};
-
 void box(List *content) {
   // content is a list of lists who contain layers
   TerminalSize ts = get_terminal_size();
+  
   setCursorPosition(0, 0);
-
+  
   Cell *screen = bottomLayer(ts);
 
-  for (int i = 0; i < content->length; i++) {
-    List *thisContent = List_gst(content, i);
+  $List_forEach(content,List*,thisContent )
+  {
     Cell *lr = Leyer_rasterize(thisContent, ts);
     cellArrMerge(screen, lr);
   }
@@ -315,10 +321,26 @@ void box(List *content) {
   fflush(stdout);
 
   if (!LastLRender) {
+
     LastLRenderScreen = List_new(sizeof(Cell));
-    for (int i = 0; screen[i].g; i++) {
-      List_append(LastLRenderScreen, screen + i);
+    int i = 0;
+    while (screen[i].g) {
+      i++;
     }
+    List_copyInto(LastLRenderScreen,screen,i+1);
+    /* for (int i = 0; screen[i].g; i++) { */
+    /*   List_append(LastLRenderScreen, screen + i); */
+    /* } */
+
+    LastLRender = LastLRenderScreen->head;
+  }else{
+
+    int i = 0;
+    while (screen[i].g) {
+      i++;
+    }
+    List_copyInto(LastLRenderScreen,screen,i+1);
+
     LastLRender = LastLRenderScreen->head;
   }
 

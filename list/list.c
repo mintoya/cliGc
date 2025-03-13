@@ -5,7 +5,7 @@
 #include <wchar.h>
 /*#define FAIL exit(1)*/
 // not using stdlib for now
-#define FAIL printf("FAIL was supposed to be called here");
+#define FAIL printf("possible seg fault");
 
 #define KNRM "\x1B[0m"
 #define KRED "\x1B[31m"
@@ -58,13 +58,8 @@ void errPrint(char *message) {}
 void warnPrint(char *message) {}
 #endif /* ifdef DEBUGRANGE */
 void List_resize(List *l, unsigned int newSize) {
-  /*char buffer[60] = {0};*/
-  /*sprintf(buffer,"List_resize(%u)\n",newSize);*/
-  /*warnPrint(buffer);*/
-
   if (newSize < 1) {
-    List_resize(l, 1);
-    return;
+    newSize = 1;
   }
 
   void *newPlace = realloc(l->head, newSize * l->width);
@@ -105,7 +100,7 @@ void List_zeroOut(List *l) {
 }
 void List_append(List *l, void *element) {
   if (l->length + 1 >= l->size) {
-    List_resize(l, l->length * 2);
+    List_resize(l, l->length + l->length);
   }
   memcpy(l->head + l->width * l->length, element, l->width);
   l->length++;
@@ -143,6 +138,12 @@ int List_forEach(List *l, int (*function)(void *)) {
     result = result && function(List_gst(l, i));
   }
   return result;
+}
+void List_copyInto(List *l, void *source, unsigned int i) {
+  // helper function for turning arrays into lists
+  l->length = i;
+  List_resize(l, i);
+  memcpy(l->head, source, l->width);
 }
 
 int List_filter(List *l, int (*function)(void *)) {

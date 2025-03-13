@@ -33,10 +33,6 @@ typedef struct {
   wchar_t *contents; // cant contain escape sequences
 } Line;
 
-typedef struct {
-  wchar_t g;
-  rgbColor color;
-} Cell;
 Line Line_new(int row, int col, rgbColor color, Direction orientation,
               wchar_t *content) ;
 void Layer_delete(List *l) ;
@@ -49,7 +45,6 @@ typedef struct {
 } Box;
 rgbColor hexC(char fgColor[7], char bgColor[7]);
 void Box_set(Box box, int row, int col, rgbColor color, wchar_t val);
-void pretty_print_box(const Box box);
 void Box_reset(Box box, int row, int col) ;
 Box Box_new(int row, int col, int brow, int bcol, rgbColor color,wchar_t fill);
 void box(List *content) ;

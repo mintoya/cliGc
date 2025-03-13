@@ -2,3 +2,5 @@ a.exe
 list/a
 a
 valgrind.log
+perf.data
+perf.data.old
