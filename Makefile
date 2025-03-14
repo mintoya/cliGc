@@ -10,6 +10,10 @@ run: make
 test: make
 	gcc -o a $(OBJECTS) $(CFLAGS) -g
 	gdb ./a
+profile: make
+	@echo "perf report to view"
+	@sleep 2
+	perf record ./a
 a: $(OBJECTS)
 	gcc -o a $(OBJECTS) $(CFLAGS)
 

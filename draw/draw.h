@@ -3,6 +3,6 @@
 
 #include "../list/list.h"
 void $sleep(unsigned long long );
-int begin(void (*layerFactory)(void));
 void draw(List *l);
+void begin(void);
 #endif // DRAW_H

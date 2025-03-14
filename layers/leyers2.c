@@ -317,6 +317,7 @@ void box(List *content) {
 
   if (!BENCHMARK && $eq(LastTerminalSize, ts)) {
     printCellDiff(screen);
+    usleep(500);
   } else {
     printCells(screen);
   }
