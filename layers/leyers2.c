@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <wchar.h>
 
-#define BENCHMARK 1 // turns off the diff functino
+#define BENCHMARK 0 // turns off the diff functino
 
 #define $eq(a, b) !memcmp(&a, &b, sizeof(a))
 
@@ -240,15 +240,16 @@ void printCellDiff(Cell *cellLayer) {
     if (!$eq(LastLRender[i], current)) {
       setCursorPosition(row, col);
       wchar_t total[45] = {0};
-      swprintf(total, 41, colorAscii(current.color));
       // for debugging
-      /* rgbColor test = current.color; */
-      /* test.bg[2] = rand() % 254; */
-      /* WFPRINT(colorAscii(test)); */
-
+      /* { */
+      /*   rgbColor test = current.color; */
+      /*   test.bg[2] = rand() % 254; */
+      /*   swprintf(total, 41, colorAscii(test)); */
+      /* } */
+      swprintf(total, 41, colorAscii(current.color));
       wchar_t literal[2] = {current.g, 0};
       swprintf(total + wcslen(total), 2, literal);
-
+      LastLRender[i] = current;
       WFPRINT(total);
     }
 
@@ -310,10 +311,16 @@ void box(List *content) {
 
   Cell *screen = bottomLayer(ts);
 
-  $List_forEach(content, List *, thisContent, {
+  /* $List_forEach(content, List *, thisContent, { */
+  /*   Cell *lr = Leyer_rasterize(thisContent, ts); */
+  /*   cellArrMerge(screen, lr); */
+  /* }); */
+  for (int i = 0; i < content->length; i++) {
+    List *thisContent = List_gst(content, i);
+
     Cell *lr = Leyer_rasterize(thisContent, ts);
     cellArrMerge(screen, lr);
-  });
+  }
   if (!BENCHMARK && $eq(LastTerminalSize, ts)) {
     printCellDiff(screen);
     usleep(500);
@@ -324,22 +331,14 @@ void box(List *content) {
 
   if (!LastLRender) {
     LastLRenderScreen = List_new(sizeof(Cell));
-    int i = 0;
-    while (screen[i].g) {
-      i++;
-    }
-    List_copyInto(LastLRenderScreen, screen, i + 2);
-    LastLRender = LastLRenderScreen->head;
-  } else {
-
-    int i = 0;
-    while (screen[i].g) {
-      i++;
-    }
-    List_copyInto(LastLRenderScreen, screen, i + 2);
-
-    LastLRender = LastLRenderScreen->head;
   }
+  int i = 0;
+  while (screen[i].g) {
+    i++;
+  }
+  List_copyInto(LastLRenderScreen, screen, i + 2); // head can change (realloc)
+
+  LastLRender = LastLRenderScreen->head;
 
   LastTerminalSize = ts;
 }
