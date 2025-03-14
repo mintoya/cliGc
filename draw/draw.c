@@ -39,7 +39,7 @@ static pthread_mutex_t lock;
 static List *screen = NULL;
 void *worker(void *thing) {
   while (1) {
-
+    cursorOff();
     pthread_mutex_lock(&lock);
     if (todraw && screen) {
       todraw = 0;
