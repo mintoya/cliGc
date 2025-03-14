@@ -2,7 +2,6 @@
 #include "../layers/leyers2.h"
 #include "../list/list.h"
 #include "../wprint/wprint.h"
-#include <bits/pthreadtypes.h>
 #include <locale.h>
 #include <pthread.h>
 #include <signal.h>

@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <wchar.h>
 
-#define BENCHMARK 0 // turns off the diff functino
+#define BENCHMARK 1 // turns off the diff functino
 
 #define $eq(a, b) !memcmp(&a, &b, sizeof(a))
 
@@ -329,7 +329,7 @@ void box(List *content) {
     while (screen[i].g) {
       i++;
     }
-    List_copyInto(LastLRenderScreen,screen,i+1);
+    List_copyInto(LastLRenderScreen,screen,i+2);
     LastLRender = LastLRenderScreen->head;
   }else{
 
@@ -337,7 +337,7 @@ void box(List *content) {
     while (screen[i].g) {
       i++;
     }
-    List_copyInto(LastLRenderScreen,screen,i+1);
+    List_copyInto(LastLRenderScreen,screen,i+2);
 
     LastLRender = LastLRenderScreen->head;
   }
