@@ -21,8 +21,7 @@ void List_zeroOut(List *l);
 void List_delete(List*l);
 void List_print_as_string(List* l);
 int List_filter(List *l, int (*function)(void *));
-#define $List_forEach(list,type,item) \
-  type item;\
-    for (size_t _i = 0; _i < (list)->length && ((item) = List_gst((list), _i), 1); _i++)
-/* #define $List_foreach(item, list)\ */
+#define $List_forEach(list,type,item,run) \
+{type item;\
+    for (size_t _i = 0; _i < (list)->length && ((item) = *((type *)List_gst((list), _i)), 1); _i++) {run} }
 #endif // LIST_H

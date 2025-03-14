@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+/* #include <unistd.h> */
 #include <wchar.h>
 
 #define $runOnce(a)                                                            \
@@ -24,14 +24,14 @@ List *tick() {
     *b = Box_new(10, 10, 20, 20, hexC("#FFFFFF", "#000001"), L' ');
     result = List_new(sizeof(List));
 
-    /* Line tline = */
-    /*     Line_new(5, 5, hexC("#F00000", "#FFF000"), Vertical, L"hello world");
-     */
-    /* List *tlist = List_new(sizeof(Line)); */
-    /* List_append(tlist, &tline); */
+    Line tline =
+        Line_new(5, 5, hexC("#F00000", "#FFF000"), Vertical, L"hello world");
+
+    List *tlist = List_new(sizeof(Line));
+    List_append(tlist, &tline);
 
     List_append(result, (b->lines));
-    /* List_append(result, tlist); */
+    List_append(result, tlist);
   }
   Box_set(*b, a + 2, a + 2, hexC("#FFFFFF", "#FF8F0F"), L' ');
   return result;
@@ -40,6 +40,7 @@ List *tick() {
 int main(void) {
   begin();
   while (1) {
+    $sleep(50);
     draw(tick());
     a++;
   }

@@ -1,4 +1,4 @@
-#include "list.h" // Assuming the header is in the same directory
+#include "list.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -137,7 +137,6 @@ void test_List_resize() {
 
   List_delete(list);
 }
-
 void test_List_forEach() {
   List *list = List_new(sizeof(Person));
   Person person1 = {"John Doe", 30};
@@ -147,8 +146,9 @@ void test_List_forEach() {
   List_append(list, &person2);
 
   // Print each person in the list
-  List_forEach(list, print_person);
-
+  int total = 0;
+  $List_forEach(list, Person, tp, { total += tp.age; });
+  assert(total == person1.age + person2.age);
   printf("Test List_forEach passed!\n");
 
   List_delete(list);
@@ -170,10 +170,10 @@ void test_List_filter() {
 
   // Print each person in the list
   printf("before filter\n");
-  List_forEach(list, print_person);
+  $List_forEach(list, Person, temp, print_person(&temp););
   List_filter(list, filterHelper);
   printf("after filter\n");
-  List_forEach(list, print_person);
+  $List_forEach(list, Person, temp, print_person(&temp););
   assert(list->length == 1);
   printf("Test List_filter passed!\n");
 

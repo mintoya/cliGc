@@ -89,7 +89,8 @@ static const Cell tl      = {L'┌',  {{255, 255, 255}, {0, 0, 0}}};
 static const Cell bl      = {L'└',  {{255, 255, 255}, {0, 0, 0}}};
 static const Cell tr      = {L'┐',  {{255, 255, 255}, {0, 0, 0}}};
 static const Cell br      = {L'┘',  {{255, 255, 255}, {0, 0, 0}}};
-// clang-format om
+// clang-format on
+
 Line Line_new(int row, int col, rgbColor color, Direction orientation,
               wchar_t *content) {
   Line a;
@@ -160,10 +161,10 @@ void Layer_delete(List *l) {
 }
 void stringAppend(List *l, const wchar_t *nTString) {
   int i = wcslen(nTString);
-  wchar_t* place =l->head + l->length*sizeof(wchar_t);
-  List_resize(l,l->length+i);
-  l->length+=i;
-  memcpy(place,nTString,i*sizeof(wchar_t));
+  wchar_t *place = l->head + l->length * sizeof(wchar_t);
+  List_resize(l, l->length + i);
+  l->length += i;
+  memcpy(place, nTString, i * sizeof(wchar_t));
 }
 void rasterset(Cell *c, TerminalSize ts, int row, int col, Cell element) {
   if (row >= ts.height || col >= ts.width)
@@ -239,7 +240,7 @@ void printCellDiff(Cell *cellLayer) {
     if (!$eq(LastLRender[i], current)) {
       setCursorPosition(row, col);
       wchar_t total[45] = {0};
-      swprintf(total,41,colorAscii(current.color));
+      swprintf(total, 41, colorAscii(current.color));
       // for debugging
       /* rgbColor test = current.color; */
       /* test.bg[2] = rand() % 254; */
@@ -268,7 +269,7 @@ Cell *bottomLayer(TerminalSize ts) {
   static List *baseLayer = NULL;
   if (!baseLayer) {
     baseLayer = List_new(sizeof(Cell));
-  }else if($eq(ts,LastTerminalSize)){
+  } else if ($eq(ts, LastTerminalSize)) {
     return baseLayer->head;
   }
   List_resize(baseLayer, (ts.height + 1) * (ts.width + 1));
@@ -304,17 +305,15 @@ Cell *bottomLayer(TerminalSize ts) {
 void box(List *content) {
   // content is a list of lists who contain layers
   TerminalSize ts = get_terminal_size();
-  
+
   setCursorPosition(0, 0);
-  
+
   Cell *screen = bottomLayer(ts);
 
-  $List_forEach(content,List*,thisContent )
-  {
+  $List_forEach(content, List *, thisContent, {
     Cell *lr = Leyer_rasterize(thisContent, ts);
     cellArrMerge(screen, lr);
-  }
-
+  });
   if (!BENCHMARK && $eq(LastTerminalSize, ts)) {
     printCellDiff(screen);
     usleep(500);
@@ -329,15 +328,15 @@ void box(List *content) {
     while (screen[i].g) {
       i++;
     }
-    List_copyInto(LastLRenderScreen,screen,i+2);
+    List_copyInto(LastLRenderScreen, screen, i + 2);
     LastLRender = LastLRenderScreen->head;
-  }else{
+  } else {
 
     int i = 0;
     while (screen[i].g) {
       i++;
     }
-    List_copyInto(LastLRenderScreen,screen,i+2);
+    List_copyInto(LastLRenderScreen, screen, i + 2);
 
     LastLRender = LastLRenderScreen->head;
   }
