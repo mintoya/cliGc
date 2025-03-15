@@ -44,7 +44,6 @@ void *worker(void *thing) {
     if (todraw && screen) {
       todraw = 0;
       box(screen);
-      fflush(stdout);
     }
     pthread_mutex_unlock(&lock);
   }
