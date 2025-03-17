@@ -42,17 +42,16 @@ Node solidify(Node parent, Node n) {
 
   if (!result.position.dcol.isDefined)
     result.position.dcol.n =
-        Rational_multiply(n.position.dcol.n, parent.size.dcol.n);
+        Rational_add(Rational_multiply(n.position.dcol.n, parent.size.dcol.n),
+                     parent.position.dcol.n); // Corrected here
 
   if (!result.position.drow.isDefined)
     result.position.drow.n =
-        Rational_multiply(n.position.drow.n, parent.size.drow.n);
+        Rational_add(Rational_multiply(n.position.drow.n, parent.size.drow.n),
+                     parent.position.drow.n); // Corrected here
 
   return result;
 }
-// clang-format off
-
-// clang-format on
 Box fromNode(Node *n) {
   int start_row = Rational_toInt(n->position.drow.n);
   int start_col = Rational_toInt(n->position.dcol.n);
@@ -74,23 +73,3 @@ List *renderNodes(List *result, Node *start) {
   }
   return result;
 }
-/* List *renderNodes() { */
-/*   static Box *b = NULL; */
-/*   static List *result = NULL; */
-/*   if (!b || !result) { */
-/*     b = calloc(1, sizeof(Box)); */
-/*     *b = Box_new(10, 10, 20, 20, hexC("#FFFFFF", "#000001"), L' '); */
-/*     result = List_new(sizeof(List)); */
-/**/
-/*     Line tline = */
-/*         Line_new(5, 5, hexC("#F00000", "#FFF000"), Vertical, L"hello world");
- */
-/**/
-/*     List *tlist = List_new(sizeof(Line)); */
-/*     List_append(tlist, &tline); */
-/**/
-/*     List_append(result, (b->lines)); */
-/*     List_append(result, tlist); */
-/*   } */
-/*   return result; */
-/* } */
