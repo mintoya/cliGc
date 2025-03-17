@@ -10,7 +10,7 @@ typedef struct {
 } Rational;
 typedef struct Number {
   Rational n;
-  uint isDefined; // version of the % in css
+  char isDefined; // version of the % in css
 } Number;
 typedef struct Offset {
   Number dcol, drow;
