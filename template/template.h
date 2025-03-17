@@ -1,4 +1,27 @@
 #ifndef TEMPLATE_H
 #define TEMPLATE_H
+#include "../layers/leyers2.h"
+#include "../list/list.h"
 
+#include <sys/types.h>
+typedef struct {
+  int numerator;
+  int denominator;
+} Rational;
+typedef struct Number {
+  Rational n;
+  uint isDefined; // version of the % in css
+} Number;
+typedef struct Offset {
+  Number dcol, drow;
+} Offset;
+typedef struct Node {
+  Offset position;
+  Offset size;
+  rgbColor color;
+  List* children;
+  Box *self;
+} Node;
+
+List *renderNodes(List *result, Node *start) ;
 #endif // !TEMPLATE_H

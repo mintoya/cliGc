@@ -1,5 +1,5 @@
 CFLAGS = -pthread
-OBJECTS = wprint/wprint.c main.c draw/draw.c tSize/terminal_size.c list/list.c layers/leyers2.c input/input.c
+OBJECTS = wprint/wprint.c main.c draw/draw.c tSize/terminal_size.c list/list.c layers/leyers2.c input/input.c template/template.c
 make: $(OBJECTS)
 	gcc -o a $(OBJECTS) $(CFLAGS)
 clean:
@@ -19,6 +19,9 @@ a: $(OBJECTS)
 
 main.o: main.c
 	gcc -c main.c $(CFLAGS)
+
+template.o: template.c
+	gcc -c template.c $(CFLAGS)
 draw.o: draw.c
 	gcc -c draw.c $(CFLAGS)
 layers2.o: layers/leyers2.c

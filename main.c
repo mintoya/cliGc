@@ -2,6 +2,7 @@
 #include "input/input.h"
 #include "layers/leyers2.h"
 #include "list/list.h"
+#include "template/template.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,9 +40,61 @@ List *tick() {
 
 int main(void) {
   begin();
+
+  Node root = {
+      .position = {.dcol = {.n = {0, 1}, .isDefined = 1},
+                   .drow = {.n = {0, 1}, .isDefined = 1}},
+      .size = {.dcol = {.n = {1, 1}, .isDefined = 0},
+               .drow = {.n = {1, 1}, .isDefined = 0}},
+      .color = {{0, 0, 0}, {0, 0, 0}},
+      .children = NULL,
+      .self = NULL,
+  };
+  Node example = {
+      .children = NULL,
+      .color = hexC("#111111", "#FF8888"),
+      .position =
+          {
+              .dcol =
+                  {
+                      .isDefined = 0,
+                      .n = {1, 2},
+                  },
+              .drow =
+                  {
+                      .isDefined = 0,
+                      .n = {1, 2},
+                  },
+          },
+      .size =
+          {
+              .dcol =
+                  {
+                      .isDefined = 0,
+                      .n = {2, 4},
+                  },
+              .drow =
+                  {
+                      .isDefined = 0,
+                      .n = {3, 6},
+                  },
+          },
+      .self = NULL,
+  };
+  root.children = List_new(sizeof(Node));
+  List_append(root.children, &example);
+
   while (1) {
-    $sleep(50);
-    draw(tick());
+    /* $sleep(50); */
+
+    TerminalSize ts = get_terminal_size();
+    Offset fromTerminal = {
+        .dcol = {.isDefined = 1, .n = {ts.width, 1}},
+        .drow = {.isDefined = 1, .n = {ts.height, 1}},
+    };
+    root.size = fromTerminal;
+    draw(renderNodes(NULL, &root));
+    /* draw(tick()); */
     a++;
   }
   return (0);

@@ -1,22 +1,96 @@
 #include "template.h"
-#include "../layers/leyers2.h"
-#include "../list/list.h"
-typedef enum { DEFINED, DYNAMIC } DomDynamicType;
-typedef union {
-  float defined;
-  int dynamic;
-} DynamicData;
-typedef struct Number {
-  DynamicData self;
-  DomDynamicType currentType;
-} Number;
-typedef struct Node {
-  Box Self;
-  List *Children;
-  Number width;
-  Number heith;
-  Number minwidth;
-  Number minheith;
-  Number colth;
-  Number rowth;
-} Node;
+#include "../tSize/terminal_size.h"
+#include <unistd.h>
+#include <wchar.h>
+Rational Rational_add(Rational a, Rational b) {
+  Rational result;
+  if (a.denominator == b.denominator) {
+    result.denominator = a.denominator;
+    result.numerator = a.numerator + b.numerator;
+  } else {
+    result.denominator = a.denominator * b.denominator;
+    result.numerator =
+        a.numerator * b.denominator + b.numerator * a.denominator;
+  }
+  return result;
+}
+Rational Rational_subtract(Rational a, Rational b) {
+  b.numerator *= -1;
+  return Rational_add(a, b);
+}
+Rational Rational_multiply(Rational a, Rational b) {
+  Rational result;
+  result.numerator = a.numerator * b.numerator;
+  result.denominator = a.denominator * b.denominator;
+  return result;
+}
+Rational Rational_divide(Rational a, Rational b) {
+  int temp = b.numerator;
+  b.numerator = b.denominator;
+  b.denominator = temp;
+  return Rational_multiply(a, b);
+}
+int Rational_toInt(Rational a) { return a.numerator / a.denominator; }
+Node solidify(Node parent, Node n) {
+  Node result = n;
+
+  if (!result.size.dcol.isDefined)
+    result.size.dcol.n = Rational_multiply(n.size.dcol.n, parent.size.dcol.n);
+
+  if (!result.size.drow.isDefined)
+    result.size.drow.n = Rational_multiply(n.size.drow.n, parent.size.drow.n);
+
+  if (!result.position.dcol.isDefined)
+    result.position.dcol.n =
+        Rational_multiply(n.position.dcol.n, parent.size.dcol.n);
+
+  if (!result.position.drow.isDefined)
+    result.position.drow.n =
+        Rational_multiply(n.position.drow.n, parent.size.drow.n);
+
+  return result;
+}
+// clang-format off
+
+// clang-format on
+Box fromNode(Node *n) {
+  int start_row = Rational_toInt(n->position.drow.n);
+  int start_col = Rational_toInt(n->position.dcol.n);
+  int end_row = start_row + Rational_toInt(n->size.drow.n);
+  int end_col = start_col + Rational_toInt(n->size.dcol.n);
+  Box result = Box_new(start_row, start_col, end_row, end_col, n->color, L' ');
+  return result;
+}
+List *renderNodes(List *result, Node *start) {
+  if (!result)
+    result = List_new(sizeof(List));
+  List_append(result, fromNode(start).lines);
+  if (start->children != NULL) {
+    for (int i = 0; i < start->children->length; i++) {
+      Node element = *((Node *)List_gst(start->children, i));
+      Node solid = solidify(*start, element);
+      renderNodes(result, &solid);
+    }
+  }
+  return result;
+}
+/* List *renderNodes() { */
+/*   static Box *b = NULL; */
+/*   static List *result = NULL; */
+/*   if (!b || !result) { */
+/*     b = calloc(1, sizeof(Box)); */
+/*     *b = Box_new(10, 10, 20, 20, hexC("#FFFFFF", "#000001"), L' '); */
+/*     result = List_new(sizeof(List)); */
+/**/
+/*     Line tline = */
+/*         Line_new(5, 5, hexC("#F00000", "#FFF000"), Vertical, L"hello world");
+ */
+/**/
+/*     List *tlist = List_new(sizeof(Line)); */
+/*     List_append(tlist, &tline); */
+/**/
+/*     List_append(result, (b->lines)); */
+/*     List_append(result, tlist); */
+/*   } */
+/*   return result; */
+/* } */
