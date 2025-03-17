@@ -9,6 +9,7 @@
 #include <string.h>
 /* #include <unistd.h> */
 #include <wchar.h>
+#define RED "#FF0000"
 
 #define $runOnce(a)                                                            \
   static char has_run = 0;                                                     \
@@ -50,6 +51,7 @@ int main(void) {
       .children = NULL,
       .self = NULL,
   };
+
   Node example = {
       .children = NULL,
       .color = hexC("#111111", "#FF8888"),
@@ -81,11 +83,45 @@ int main(void) {
           },
       .self = NULL,
   };
+
+  Node example2 = {
+      .children = NULL,
+      .color = hexC("#111111", "#FF0000"),
+      .position =
+          {
+              .dcol =
+                  {
+                      .isDefined = 0,
+                      .n = {1, 2},
+                  },
+              .drow =
+                  {
+                      .isDefined = 0,
+                      .n = {1, 2},
+                  },
+          },
+      .size =
+          {
+              .dcol =
+                  {
+                      .isDefined = 0,
+                      .n = {2, 4},
+                  },
+              .drow =
+                  {
+                      .isDefined = 0,
+                      .n = {3, 6},
+                  },
+          },
+      .self = NULL,
+  };
+  example.children = List_new(sizeof(Node));
+  List_append(example.children, &example2);
   root.children = List_new(sizeof(Node));
   List_append(root.children, &example);
 
   while (1) {
-    /* $sleep(50); */
+    $sleep(50);
 
     TerminalSize ts = get_terminal_size();
     Offset fromTerminal = {
