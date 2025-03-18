@@ -1,4 +1,3 @@
-
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -17,3 +16,14 @@ void WFPRINT(const wchar_t *message) {
 #include <unistd.h>
 void WFPRINT(const wchar_t *stringLit) { wprintf(stringLit); }
 #endif
+static FILE *debugfile = NULL;
+void DEBUG(const wchar_t *format, ...) {
+  if (!debugfile) {
+    debugfile = fopen("debug.txt", "w");
+  }
+  va_list args;
+  va_start(args, format);
+  fwprintf(debugfile, format, args);
+  va_end(args);
+}
+void closeDebug() { fclose(debugfile); }
