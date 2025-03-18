@@ -102,18 +102,6 @@ Line Line_new(int row, int col, rgbColor color, Direction orientation,
   return a;
 }
 
-void pretty_print_box(const Box box) {
-  wprintf(colorAscii(box.defcolor));
-  wprintf(L" ## \n");
-  wprintf(L"\033[0m");
-  wprintf(L"box\n");
-  wprintf(L" lines: %p\n"
-          L" (%d,%d)\n"
-          L" (%d,%d)\n",
-          box.lines, box.row, box.col, box.brow, box.bcol);
-  fflush(stdout);
-}
-
 Box Box_new(int row, int col, int brow, int bcol, rgbColor color,
             wchar_t fill) {
   Box a;

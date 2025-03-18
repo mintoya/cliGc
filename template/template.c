@@ -1,5 +1,6 @@
 #include "template.h"
 #include "../tSize/terminal_size.h"
+#include <string.h>
 #include <unistd.h>
 #include <wchar.h>
 Rational Rational_add(Rational a, Rational b) {
@@ -52,24 +53,42 @@ Node solidify(Node parent, Node n) {
 
   return result;
 }
-Box fromNode(Node *n) {
+List *fromNode(Node *n) {
   int start_row = Rational_toInt(n->position.drow.n);
   int start_col = Rational_toInt(n->position.dcol.n);
   int end_row = start_row + Rational_toInt(n->size.drow.n);
   int end_col = start_col + Rational_toInt(n->size.dcol.n);
-  Box result = Box_new(start_row, start_col, end_row, end_col, n->color, L' ');
-  return result;
+  if (n->self.lines != NULL) {
+    Box b = n->self;
+    if (start_row == b.row && start_col == b.col && end_row == b.brow &&
+        end_col == b.bcol) {
+      return b.lines;
+    } else {
+      Layer_delete(b.lines);
+    }
+  }
+  Box resultBox =
+      Box_new(start_row, start_col, end_row, end_col, n->color, L' ');
+  n->self = resultBox;
+  return resultBox.lines;
 }
-List *renderNodes(List *result, Node *start) {
-  if (!result)
-    result = List_new(sizeof(List));
-  List_append(result, fromNode(start).lines);
+void recursiverenderer(List *usedList, Node *start) {
+  List_append(usedList, fromNode(start));
   if (start->children != NULL) {
     for (int i = 0; i < start->children->length; i++) {
       Node element = *((Node *)List_gst(start->children, i));
       Node solid = solidify(*start, element);
-      renderNodes(result, &solid);
+      recursiverenderer(usedList, &solid);
     }
   }
-  return result;
+  return;
+}
+List *renderNodes(Node *start) {
+  static List *mainList = NULL;
+  if (mainList == NULL)
+    mainList = List_new(sizeof(List));
+  mainList->length = 0;
+  /* mainList->length = 0; */
+  recursiverenderer(mainList, start);
+  return mainList;
 }

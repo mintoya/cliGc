@@ -35,7 +35,7 @@ List *tick() {
     List_append(result, (b->lines));
     List_append(result, tlist);
   }
-  Box_set(*b, a + 2, a + 2, hexC("#FFFFFF", "#FF8F0F"), L' ');
+  Box_set(*b, a, a + 2, hexC("#FFFFFF", "#FF8F0F"), L' ');
   return result;
 }
 
@@ -81,7 +81,10 @@ int main(void) {
                       .n = {3, 6},
                   },
           },
-      .self = NULL,
+      .self =
+          {
+              .lines = NULL,
+          },
   };
 
   Node example2 = {
@@ -113,7 +116,10 @@ int main(void) {
                       .n = {3, 6},
                   },
           },
-      .self = NULL,
+      .self =
+          {
+              .lines = NULL,
+          },
   };
   example.children = List_new(sizeof(Node));
   List_append(example.children, &example2);
@@ -121,7 +127,7 @@ int main(void) {
   List_append(root.children, &example);
 
   while (1) {
-    $sleep(50);
+    /* $sleep(50); */
 
     TerminalSize ts = get_terminal_size();
     Offset fromTerminal = {
@@ -129,7 +135,7 @@ int main(void) {
         .drow = {.isDefined = 1, .n = {ts.height, 1}},
     };
     root.size = fromTerminal;
-    draw(renderNodes(NULL, &root));
+    draw(renderNodes(&root));
     /* draw(tick()); */
     a++;
   }

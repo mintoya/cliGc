@@ -20,8 +20,8 @@ typedef struct Node {
   Offset size;
   rgbColor color;
   List* children;
-  Box *self;
+  Box self;
 } Node;
 
-List *renderNodes(List *result, Node *start) ;
+List *renderNodes(Node *start) ;
 #endif // !TEMPLATE_H
