@@ -149,10 +149,15 @@ void Layer_delete(List *l) {
 }
 void stringAppend(List *l, const wchar_t *nTString) {
   int i = wcslen(nTString);
-  wchar_t *place = l->head + l->length * sizeof(wchar_t);
-  List_resize(l, l->length + i);
-  l->length += i;
+  int newLength = l->length + i;
+  // Resize first to ensure sufficient capacity
+  List_resize(l, newLength + 1); // +1 for null terminator if needed
+  // Calculate the insertion point after potential realloc
+  wchar_t *place = l->head + l->length;
   memcpy(place, nTString, i * sizeof(wchar_t));
+  l->length = newLength; // Update length after copying
+  // Null-terminate if necessary
+  ((wchar_t *)(l->head))[l->length] = L'\0';
 }
 void rasterset(Cell *c, TerminalSize ts, int row, int col, Cell element) {
   if (row >= ts.height || col >= ts.width)
