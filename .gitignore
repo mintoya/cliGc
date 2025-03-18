@@ -4,3 +4,4 @@ a
 valgrind.log
 perf.data
 perf.data.old
+debug.txt

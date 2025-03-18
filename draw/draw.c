@@ -41,6 +41,7 @@ void *worker(void *thing) {
   while (1) {
     cursorOff();
     pthread_mutex_lock(&lock);
+    usleep(1);
     if (todraw && screen) {
       todraw = 0;
       box(screen);
@@ -54,6 +55,12 @@ void draw(List *l) {
   screen = l;
   pthread_mutex_unlock(&lock);
 }
+
+static pthread_t thing1;
+void sigintHandler(int signal) {
+  exit(1);
+  closeDebug();
+}
 void begin(void) {
 
 #ifdef _WIN32
@@ -62,11 +69,11 @@ void begin(void) {
 #else
   setlocale(LC_ALL, "");
 #endif
+  signal(SIGINT, sigintHandler);
   if (pthread_mutex_init(&lock, NULL)) {
     printf("\n mutex init has failed\n");
     return;
   }
-  pthread_t thing1;
   pthread_create(&thing1, NULL, worker, 0);
   /* pthread_join(thing1, NULL); */
   /* pthread_mutex_destroy(&lock); */
