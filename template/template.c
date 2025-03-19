@@ -53,24 +53,32 @@ Node solidify(Node parent, Node n) {
 
   return result;
 }
+
+void printNode(const Node *node) {
+  DEBUG(L"Node: \n");
+  DEBUG(L"Children: %p\n", node->children);
+  DEBUG(L"Self: %p\n", node->self.lines);
+}
+
+static List noline = {
+    .head = NULL,
+    .length = 0,
+    .size = 0,
+    .width = 0,
+};
 List *fromNode(Node *n) {
   int start_row = Rational_toInt(n->position.drow.n);
   int start_col = Rational_toInt(n->position.dcol.n);
   int end_row = start_row + Rational_toInt(n->size.drow.n);
   int end_col = start_col + Rational_toInt(n->size.dcol.n);
-  if (n->self.lines != NULL) {
-    Box b = n->self;
-    if (start_row == b.row && start_col == b.col && end_row == b.brow &&
-        end_col == b.bcol) {
-      return b.lines;
-    } else {
-      Layer_delete(b.lines);
-    }
+  if (n->self.lines) {
+    printNode(n);
+  } else {
+    n->self = Box_new(start_row, start_col, end_row, end_col, n->color, L' ');
+    printNode(n);
   }
-  Box resultBox =
-      Box_new(start_row, start_col, end_row, end_col, n->color, L' ');
-  n->self = resultBox;
-  return resultBox.lines;
+
+  return n->self.lines;
 }
 void recursiverenderer(List *usedList, Node *start) {
   List_append(usedList, fromNode(start));
