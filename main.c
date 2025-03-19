@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 /* #include <unistd.h> */
+#include <unistd.h>
 #include <wchar.h>
 #define RED "#FF0000"
 
@@ -40,7 +41,6 @@ List *tick() {
 }
 
 int main(void) {
-  begin();
 
   Node root = {
       .position = {.dcol = {.n = {0, 1}, .isDefined = 1},
@@ -126,16 +126,11 @@ int main(void) {
   root.children = List_new(sizeof(Node));
   List_append(root.children, &example);
 
+  /* begin(); */
   while (1) {
-    /* $sleep(50); */
-
-    TerminalSize ts = get_terminal_size();
-    Offset fromTerminal = {
-        .dcol = {.isDefined = 1, .n = {ts.width, 1}},
-        .drow = {.isDefined = 1, .n = {ts.height, 1}},
-    };
-    root.size = fromTerminal;
-    draw(renderNodes(&root));
+    /* $sleep(1); */
+    /* draw(renderNodes(&root)); */
+    syncDraw(renderNodes(&root));
     /* draw(tick()); */
     a++;
   }

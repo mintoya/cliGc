@@ -49,6 +49,7 @@ void *worker(void *thing) {
     pthread_mutex_unlock(&lock);
   }
 }
+void syncDraw(List *l) { box(l); }
 void draw(List *l) {
   pthread_mutex_lock(&lock);
   todraw = 1;

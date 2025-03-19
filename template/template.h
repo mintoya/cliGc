@@ -15,9 +15,14 @@ typedef struct Number {
 typedef struct Offset {
   Number dcol, drow;
 } Offset;
+typedef struct definedOffset {
+  int dcol, drow;
+} definedOffset ;
 typedef struct Node {
   Offset position;
   Offset size;
+  definedOffset recentPosition;
+  definedOffset recentSize;
   rgbColor color;
   List* children;
   Box self;
