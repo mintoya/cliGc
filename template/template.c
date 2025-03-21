@@ -3,6 +3,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <wchar.h>
+#define $max(a, b) (a > b) ? (a) : (b)
+#define $min(a, b) (a < b) ? (a) : (b)
 Rational Rational_add(Rational a, Rational b) {
   Rational result;
   if (a.denominator == b.denominator) {
@@ -14,6 +16,21 @@ Rational Rational_add(Rational a, Rational b) {
         a.numerator * b.denominator + b.numerator * a.denominator;
   }
   return result;
+}
+Rational Rational_reduce(Rational r) {
+  DEBUG(L"reduced %i/%i to", r.numerator, r.denominator);
+  int i = $min(r.numerator, r.denominator);
+  int o = 2;
+  while (o <= i) {
+    if (!(r.numerator % o) && !(r.denominator % o)) {
+      r.numerator /= o;
+      r.denominator /= o;
+      i /= o;
+    }
+    o++;
+  }
+  DEBUG(L" %i/%i\n", r.numerator, r.denominator);
+  return r;
 }
 Rational Rational_subtract(Rational a, Rational b) {
   b.numerator *= -1;
@@ -33,6 +50,8 @@ Rational Rational_divide(Rational a, Rational b) {
 }
 int Rational_toInt(Rational a) { return a.numerator / a.denominator; }
 void solidify(Node parent, Node *n) {
+  n->position.drow.n = Rational_reduce((n->position.drow.n));
+  n->position.dcol.n = Rational_reduce((n->position.dcol.n));
   if (n->position.dcol.isDefined) {
     n->recentPosition.dcol =
         Rational_toInt(n->position.dcol.n) + parent.recentPosition.dcol;

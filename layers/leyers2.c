@@ -253,6 +253,7 @@ void printCellDiff(Cell *cellLayer) {
     i++;
   }
   WFPRINT(L"\033[0m");
+  setCursorPosition(0, 0);
 }
 
 TerminalSize LastTerminalSize = {0, 0};

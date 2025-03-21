@@ -19,11 +19,17 @@ void WFPRINT(const wchar_t *stringLit) { wprintf(stringLit); }
 static FILE *debugfile = NULL;
 void DEBUG(const wchar_t *format, ...) {
   if (!debugfile) {
-    debugfile = fopen("debug.txt", "w");
+    debugfile = fopen("debug.txt", "w"); // Open in text mode
+    if (!debugfile)
+      return;
+    // Set stream to wide-oriented (first wide operation does this implicitly)
+    fwide(debugfile, 1); // 1 = wide-oriented stream
   }
+
   va_list args;
   va_start(args, format);
-  fwprintf(debugfile, format, args);
+  vfwprintf(debugfile, format, args); // Use vfwprintf for va_list
   va_end(args);
 }
+
 void closeDebug() { fclose(debugfile); }

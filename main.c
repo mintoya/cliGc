@@ -42,6 +42,7 @@ List *tick() {
 
 int main(void) {
 
+  // clang-format off
   Node root = {
       .position = {.dcol = {.n = {0, 1}, .isDefined = 1},
                    .drow = {.n = {0, 1}, .isDefined = 1}},
@@ -51,87 +52,53 @@ int main(void) {
       .children = NULL,
       .self = NULL,
   };
-
   Node example = {
       .children = NULL,
       .color = hexC("#111111", "#FF8888"),
-      .position =
-          {
-              .dcol =
-                  {
-                      .isDefined = 0,
-                      .n = {1, 2},
-                  },
-              .drow =
-                  {
-                      .isDefined = 0,
-                      .n = {1, 2},
-                  },
-          },
-      .size =
-          {
-              .dcol =
-                  {
-                      .isDefined = 0,
-                      .n = {2, 4},
-                  },
-              .drow =
-                  {
-                      .isDefined = 0,
-                      .n = {3, 6},
-                  },
-          },
-      .self =
-          {
-              .lines = NULL,
-          },
+      .position ={.dcol = {.n = {1, 2}, .isDefined = 0,},
+                  .drow = {.n = {1, 2}, .isDefined = 0,},},
+      .size = { .dcol = { .isDefined = 0, .n = {2, 4}, },
+                .drow = { .isDefined = 0, .n = {3, 6}, },},
+      .self = { .lines = NULL, },
   };
-
   Node example2 = {
       .children = NULL,
       .color = hexC("#111111", "#FF0000"),
       .position =
-          {
-              .dcol =
-                  {
-                      .isDefined = 0,
-                      .n = {1, 2},
-                  },
-              .drow =
-                  {
-                      .isDefined = 0,
-                      .n = {1, 2},
-                  },
-          },
+          { .dcol = { .isDefined = 0, .n = {1, 2}, },
+            .drow = { .isDefined = 0, .n = {1, 2}, },},
       .size =
-          {
-              .dcol =
-                  {
-                      .isDefined = 0,
-                      .n = {2, 4},
-                  },
-              .drow =
-                  {
-                      .isDefined = 0,
-                      .n = {3, 6},
-                  },
-          },
-      .self =
-          {
-              .lines = NULL,
-          },
+          { .dcol = { .isDefined = 0, .n = {2, 4}, },
+            .drow = { .isDefined = 0, .n = {3, 6}, },},
+      .self = { .lines = NULL, },
   };
+  Node example3 = {
+      .children = NULL,
+      .color = hexC("#111111", "#FFFF00"),
+      .position =
+          { .dcol = { .isDefined = 1, .n = {1, 1}, },
+            .drow = { .isDefined = 1, .n = {1, 1}, },},
+      .size =
+          { .dcol = { .isDefined = 0, .n = {2, 4}, },
+            .drow = { .isDefined = 0, .n = {3, 6}, },},
+      .self = { .lines = NULL, },
+  };
+  // clang-format on
   example.children = List_new(sizeof(Node));
   List_append(example.children, &example2);
+  List_append(example.children, &example3);
   root.children = List_new(sizeof(Node));
   List_append(root.children, &example);
+  Node *ref = (Node *)List_gst(example.children, 1);
 
   /* begin(); */
   while (1) {
-    /* $sleep(1); */
+    $sleep(100);
     /* draw(renderNodes(&root)); */
     syncDraw(renderNodes(&root));
     /* draw(tick()); */
+    ref->position.dcol.n.numerator = a % 6;
+    ref->position.drow.n.numerator = a % 6;
     a++;
   }
   return (0);
