@@ -18,7 +18,7 @@ Rational Rational_add(Rational a, Rational b) {
   return result;
 }
 Rational Rational_reduce(Rational r) {
-  DEBUG(L"reduced %i/%i to", r.numerator, r.denominator);
+  /* DEBUG(L"reduced %i/%i to", r.numerator, r.denominator); */
   int i = $min(r.numerator, r.denominator);
   int o = 2;
   while (o <= i) {
@@ -29,7 +29,7 @@ Rational Rational_reduce(Rational r) {
     }
     o++;
   }
-  DEBUG(L" %i/%i\n", r.numerator, r.denominator);
+  /* DEBUG(L" %i/%i\n", r.numerator, r.denominator); */
   return r;
 }
 Rational Rational_subtract(Rational a, Rational b) {

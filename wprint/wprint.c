@@ -8,7 +8,11 @@
 #ifdef _WIN32
 #include <windows.h>
 void WFPRINT(const wchar_t *message) {
-  BOOL success = WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE), message,
+  static HANDLE stdout_handle = NULL;
+  if(!stdout_handle){
+    stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+  }
+  BOOL success = WriteConsoleW(stdout_handle, message,
                                wcslen(message), NULL, NULL);
 }
 #else
