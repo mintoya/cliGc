@@ -132,18 +132,17 @@ void recursiverenderer(List *usedList, Node *start, Node *parent) {
   List_append(usedList, fromNode(start, parent));
   if (start->children != NULL) {
     for (int i = 0; i < start->children->length; i++) {
-      Node *child = (Node *)List_gst(start->children, i);
-      recursiverenderer(usedList, child, start);
+      recursiverenderer(usedList, (Node *)List_gst(start->children, i), start);
     }
   }
   return;
 }
 
-List *renderNodes(Node *start) {
+List *renderNodes(Node *root) {
   static List *mainList = NULL;
   if (mainList == NULL)
     mainList = List_new(sizeof(List));
   mainList->length = 0;
-  recursiverenderer(mainList, start, NULL);
+  recursiverenderer(mainList, root, NULL);
   return mainList;
 }
