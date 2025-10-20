@@ -1,6 +1,6 @@
 #ifndef LEYERS2_H
 #define LEYERS2_H
-#include "../list/list.h"
+#include "../my-list/my-list.h"
 #include "../tSize/terminal_size.h"
 #include "../wprint/wprint.h"
 #include <locale.h>
@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
-
 
 #define $eq(a, b) !memcmp(&a, &b, sizeof(a))
 
@@ -34,8 +33,8 @@ typedef struct {
 } Line;
 
 Line Line_new(int row, int col, rgbColor color, Direction orientation,
-              wchar_t *content) ;
-void Layer_delete(List *l) ;
+              wchar_t *content);
+void Layer_delete(List *l);
 
 typedef struct {
   List *lines;
@@ -45,7 +44,7 @@ typedef struct {
 } Box;
 rgbColor hexC(char fgColor[7], char bgColor[7]);
 void Box_set(Box box, int row, int col, rgbColor color, wchar_t val);
-void Box_reset(Box box, int row, int col) ;
-Box Box_new(int row, int col, int brow, int bcol, rgbColor color,wchar_t fill);
-void box(List *content) ;
+void Box_reset(Box box, int row, int col);
+Box Box_new(int row, int col, int brow, int bcol, rgbColor color, wchar_t fill);
+void box(List *content);
 #endif // !LEYERS2_H

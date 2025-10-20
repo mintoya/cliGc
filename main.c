@@ -1,7 +1,9 @@
+#undef __cplusplus
+
 #include "draw/draw.h"
 #include "input/input.h"
 #include "layers/leyers2.h"
-#include "list/list.h"
+#include "my-list/my-list.h"
 #include "template/template.h"
 #include <assert.h>
 #include <stdio.h>
@@ -10,6 +12,9 @@
 /* #include <unistd.h> */
 #include <unistd.h>
 #include <wchar.h>
+#define MY_LIST_C
+#include "my-list/my-list.h"
+
 #define RED "#FF0000"
 
 #define $runOnce(a)                                                            \
@@ -44,10 +49,10 @@ int main(void) {
 
   // clang-format off
   Node root = {
-      .position = {.dcol = {.n = {0, 1}, .isDefined = 1},
-                   .drow = {.n = {0, 1}, .isDefined = 1}},
-      .size = {.dcol = {.n = {1, 1}, .isDefined = 0},
-               .drow = {.n = {1, 1}, .isDefined = 0}},
+      .position = {.dcol = {.n = 0, .isDefined = 1},
+                   .drow = {.n = 0, .isDefined = 1}},
+      .size = {.dcol = {.n = 1, .isDefined = 0},
+               .drow = {.n = 1, .isDefined = 0}},
       .color = {{0, 0, 0}, {0, 0, 0}},
       .children = NULL,
       .self = NULL,
@@ -55,32 +60,32 @@ int main(void) {
   Node example = {
       .children = NULL,
       .color = hexC("#111111", "#FF8888"),
-      .position ={.dcol = {.n = {1, 2}, .isDefined = 0,},
-                  .drow = {.n = {1, 2}, .isDefined = 0,},},
-      .size = { .dcol = { .isDefined = 0, .n = {2, 4}, },
-                .drow = { .isDefined = 0, .n = {3, 6}, },},
+      .position ={.dcol = {.n =.5, .isDefined = 0,},
+                  .drow = {.n =.5, .isDefined = 0,},},
+      .size = { .dcol = { .isDefined = 0, .n = .5, },
+                .drow = { .isDefined = 0, .n = .5, },},
       .self = { .lines = NULL, },
   };
   Node example2 = {
       .children = NULL,
       .color = hexC("#111111", "#FF0000"),
       .position =
-          { .dcol = { .isDefined = 0, .n = {1, 2}, },
-            .drow = { .isDefined = 0, .n = {1, 2}, },},
+          { .dcol = { .isDefined = 0, .n =.5, },
+            .drow = { .isDefined = 0, .n =.5, },},
       .size =
-          { .dcol = { .isDefined = 0, .n = {2, 4}, },
-            .drow = { .isDefined = 0, .n = {3, 6}, },},
+          { .dcol = { .isDefined = 0, .n = .5, },
+            .drow = { .isDefined = 0, .n = .5, },},
       .self = { .lines = NULL, },
   };
   Node example3 = {
       .children = NULL,
       .color = hexC("#111111", "#FFFF00"),
       .position =
-          { .dcol = { .isDefined = 1, .n = {1, 1}, },
-            .drow = { .isDefined = 1, .n = {1, 1}, },},
+          { .dcol = { .isDefined = 1, .n =1, },
+            .drow = { .isDefined = 1, .n = 1, },},
       .size =
-          { .dcol = { .isDefined = 0, .n = {2, 4}, },
-            .drow = { .isDefined = 0, .n = {3, 6}, },},
+          { .dcol = { .isDefined = 0, .n = .5, },
+            .drow = { .isDefined = 0, .n = .5, },},
       .self = { .lines = NULL, },
   };
   // clang-format on
@@ -89,7 +94,7 @@ int main(void) {
   List_append(example.children, &example3);
   root.children = List_new(sizeof(Node));
   List_append(root.children, &example);
-  Node *ref = (Node *)List_gst(example.children, 1);
+  Node *ref = (Node *)List_getRef(example.children, 1);
 
   /* begin(); */
   while (1) {
@@ -97,8 +102,8 @@ int main(void) {
     /* draw(renderNodes(&root)); */
     syncDraw(renderNodes(&root));
     /* draw(tick()); */
-    ref->position.dcol.n.numerator = a % 6;
-    ref->position.drow.n.numerator = a % 6;
+    ref->position.dcol.n = a % 6;
+    ref->position.drow.n = a % 6;
     a++;
   }
   return (0);

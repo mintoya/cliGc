@@ -1,5 +1,5 @@
 #include "leyers2.h"
-#include "../list/list.h"
+#include "../my-list/my-list.h"
 #include "../tSize/terminal_size.h"
 #include "../wprint/wprint.h"
 #include <assert.h>
@@ -127,31 +127,31 @@ void Box_set(Box box, int row, int col, rgbColor color, wchar_t val) {
     return;
   }
   int toedit = row * (box.bcol - box.col) + col;
-  ((Line *)List_gst(box.lines, toedit))->color = color;
-  ((Line *)List_gst(box.lines, toedit))->contents[0] = val;
+  ((Line *)List_getRef(box.lines, toedit))->color = color;
+  ((Line *)List_getRef(box.lines, toedit))->contents[0] = val;
 }
 void Box_reset(Box box, int row, int col) {
   if (row >= (box.brow - box.row) || row < 0 || col >= (box.bcol - box.col) ||
       col < 0) {
     return;
   }
-  ((Line *)List_gst(box.lines, row * (box.bcol - box.col) + col))->color =
+  ((Line *)List_getRef(box.lines, row * (box.bcol - box.col) + col))->color =
       box.defcolor;
-  ((Line *)List_gst(box.lines, row * (box.bcol - box.col) + col))->contents[0] =
-      box.defchar;
+  ((Line *)List_getRef(box.lines, row * (box.bcol - box.col) + col))
+      ->contents[0] = box.defchar;
 }
 void Layer_delete(List *l) {
   for (int i = 0; i < l->length; i++) {
-    Line *loc = List_gst(l, i);
+    Line *loc = List_getRef(l, i);
     free(loc->contents);
   }
-  List_delete(l);
+  List_free(l);
 }
 void stringAppend(List *l, const wchar_t *nTString) {
   int i = wcslen(nTString);
   int newLength = l->length + i;
   List_resize(l, newLength + 1);
-  wchar_t *place = l->head + l->length * sizeof(wchar_t);
+  wchar_t *place = (wchar_t *)(l->head + l->length * sizeof(wchar_t));
   memcpy(place, nTString, i * sizeof(wchar_t));
   l->length = newLength;
   ((wchar_t *)(l->head))[l->length] = L'\0';
@@ -171,9 +171,9 @@ Cell *Leyer_rasterize(List *l, TerminalSize ts) {
   }
   List_resize(gridHolder, (ts.height + 1) * (ts.width + 1));
   List_zeroOut(gridHolder);
-  Cell *grid = gridHolder->head;
+  Cell *grid = (Cell *)gridHolder->head;
   for (int i = 0; i < l->length; i++) {
-    Line *line = List_gst(l, i);
+    Line *line = List_getRef(l, i);
     for (int j = 0; line->contents[j]; j++) {
       Cell thisCell;
       thisCell.color = line->color;
@@ -216,7 +216,7 @@ void printCells(Cell *cellLayer) {
 
   wchar_t zero = 0;
   List_append(printCellsBuffer, &zero);
-  WFPRINT(printCellsBuffer->head);
+  WFPRINT((wchar_t *)printCellsBuffer->head);
 }
 List *LastLRenderScreen = NULL;
 Cell *LastLRender = NULL;
@@ -262,10 +262,10 @@ Cell *bottomLayer(TerminalSize ts) {
   if (!baseLayer) {
     baseLayer = List_new(sizeof(Cell));
   } else if ($eq(ts, LastTerminalSize)) {
-    return baseLayer->head;
+    return (Cell *)baseLayer->head;
   }
   List_resize(baseLayer, (ts.height + 1) * (ts.width + 1));
-  Cell *grid = baseLayer->head;
+  Cell *grid = (Cell *)baseLayer->head;
   for (int i = 0; i < (ts.height) * (ts.width + 1); i++) {
     grid[i] = space;
   }
@@ -307,7 +307,7 @@ void box(List *content) {
   /*   cellArrMerge(screen, lr); */
   /* }); */
   for (int i = 0; i < content->length; i++) {
-    List *thisContent = List_gst(content, i);
+    List *thisContent = List_getRef(content, i);
 
     Cell *lr = Leyer_rasterize(thisContent, ts);
     cellArrMerge(screen, lr);
@@ -327,9 +327,9 @@ void box(List *content) {
   while (screen[i].g) {
     i++;
   }
-  List_copyInto(LastLRenderScreen, screen, i + 2); // head can change (realloc)
+  List_appendFromArr(LastLRenderScreen, screen, i + 2);
 
-  LastLRender = LastLRenderScreen->head;
+  LastLRender = (Cell *)LastLRenderScreen->head;
 
   LastTerminalSize = ts;
 }

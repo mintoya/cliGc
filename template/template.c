@@ -5,84 +5,37 @@
 #include <wchar.h>
 #define $max(a, b) (a > b) ? (a) : (b)
 #define $min(a, b) (a < b) ? (a) : (b)
-Rational Rational_add(Rational a, Rational b) {
-  Rational result;
-  if (a.denominator == b.denominator) {
-    result.denominator = a.denominator;
-    result.numerator = a.numerator + b.numerator;
-  } else {
-    result.denominator = a.denominator * b.denominator;
-    result.numerator =
-        a.numerator * b.denominator + b.numerator * a.denominator;
-  }
-  return result;
-}
-Rational Rational_reduce(Rational r) {
-  /* DEBUG(L"reduced %i/%i to", r.numerator, r.denominator); */
-  int i = $min(r.numerator, r.denominator);
-  int o = 2;
-  while (o <= i) {
-    if (!(r.numerator % o) && !(r.denominator % o)) {
-      r.numerator /= o;
-      r.denominator /= o;
-      i /= o;
-    }
-    o++;
-  }
-  /* DEBUG(L" %i/%i\n", r.numerator, r.denominator); */
-  return r;
-}
-Rational Rational_subtract(Rational a, Rational b) {
-  b.numerator *= -1;
-  return Rational_add(a, b);
-}
-Rational Rational_multiply(Rational a, Rational b) {
-  Rational result;
-  result.numerator = a.numerator * b.numerator;
-  result.denominator = a.denominator * b.denominator;
-  return result;
-}
-Rational Rational_divide(Rational a, Rational b) {
-  int temp = b.numerator;
-  b.numerator = b.denominator;
-  b.denominator = temp;
-  return Rational_multiply(a, b);
-}
-int Rational_toInt(Rational a) { return a.numerator / a.denominator; }
 void solidify(Node parent, Node *n) {
-  n->position.drow.n = Rational_reduce((n->position.drow.n));
-  n->position.dcol.n = Rational_reduce((n->position.dcol.n));
+  // Position (columns)
   if (n->position.dcol.isDefined) {
     n->recentPosition.dcol =
-        Rational_toInt(n->position.dcol.n) + parent.recentPosition.dcol;
+        (int)(n->position.dcol.n + parent.recentPosition.dcol);
   } else {
-    n->recentPosition.dcol = parent.recentSize.dcol *
-                                 n->position.dcol.n.numerator /
-                                 n->position.dcol.n.denominator +
-                             parent.recentPosition.dcol;
+    n->recentPosition.dcol = (int)(parent.recentSize.dcol * n->position.dcol.n +
+                                   parent.recentPosition.dcol);
   }
 
+  // Position (rows)
   if (n->position.drow.isDefined) {
     n->recentPosition.drow =
-        Rational_toInt(n->position.drow.n) + parent.recentPosition.drow;
+        (int)(n->position.drow.n + parent.recentPosition.drow);
   } else {
-    n->recentPosition.drow = parent.recentSize.drow *
-                                 n->position.drow.n.numerator /
-                                 n->position.drow.n.denominator +
-                             parent.recentPosition.drow;
-  }
-  if (n->size.dcol.isDefined) {
-    n->recentSize.dcol = Rational_toInt(n->size.dcol.n);
-  } else {
-    n->recentSize.dcol = parent.recentSize.dcol * n->size.dcol.n.numerator /
-                         n->size.dcol.n.denominator;
+    n->recentPosition.drow = (int)(parent.recentSize.drow * n->position.drow.n +
+                                   parent.recentPosition.drow);
   }
 
-  if (n->size.drow.isDefined) {
-    n->recentSize.drow = Rational_toInt(n->size.drow.n);
+  // Size (columns)
+  if (n->size.dcol.isDefined) {
+    n->recentSize.dcol = (int)n->size.dcol.n;
   } else {
-    n->recentSize.drow = parent.recentSize.drow * n->size.drow.n.numerator /
-                         n->size.drow.n.denominator;
+    n->recentSize.dcol = (int)(parent.recentSize.dcol * n->size.dcol.n);
+  }
+
+  // Size (rows)
+  if (n->size.drow.isDefined) {
+    n->recentSize.drow = (int)n->size.drow.n;
+  } else {
+    n->recentSize.drow = (int)(parent.recentSize.drow * n->size.drow.n);
   }
 }
 
@@ -132,7 +85,8 @@ void recursiverenderer(List *usedList, Node *start, Node *parent) {
   List_append(usedList, fromNode(start, parent));
   if (start->children != NULL) {
     for (int i = 0; i < start->children->length; i++) {
-      recursiverenderer(usedList, (Node *)List_gst(start->children, i), start);
+      recursiverenderer(usedList, (Node *)List_getRef(start->children, i),
+                        start);
     }
   }
   return;
