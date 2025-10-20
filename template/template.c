@@ -1,10 +1,6 @@
 #include "template.h"
 #include "../tSize/terminal_size.h"
-#include <string.h>
 #include <unistd.h>
-#include <wchar.h>
-#define $max(a, b) (a > b) ? (a) : (b)
-#define $min(a, b) (a < b) ? (a) : (b)
 void solidify(Node parent, Node *n) {
   // Position (columns)
   if (n->position.dcol.isDefined) {
@@ -14,8 +10,6 @@ void solidify(Node parent, Node *n) {
     n->recentPosition.dcol = (int)(parent.recentSize.dcol * n->position.dcol.n +
                                    parent.recentPosition.dcol);
   }
-
-  // Position (rows)
   if (n->position.drow.isDefined) {
     n->recentPosition.drow =
         (int)(n->position.drow.n + parent.recentPosition.drow);
@@ -23,15 +17,11 @@ void solidify(Node parent, Node *n) {
     n->recentPosition.drow = (int)(parent.recentSize.drow * n->position.drow.n +
                                    parent.recentPosition.drow);
   }
-
-  // Size (columns)
   if (n->size.dcol.isDefined) {
     n->recentSize.dcol = (int)n->size.dcol.n;
   } else {
     n->recentSize.dcol = (int)(parent.recentSize.dcol * n->size.dcol.n);
   }
-
-  // Size (rows)
   if (n->size.drow.isDefined) {
     n->recentSize.drow = (int)n->size.drow.n;
   } else {
